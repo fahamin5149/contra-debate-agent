@@ -12,11 +12,14 @@ LLM_DOWN = """
 [X] Cannot reach the model server on 127.0.0.1:8080.
 
   Start it first:
-      C:\\llama.cpp\\llama-server.exe -m C:\\local-models\\Qwen3.5-9B-UD-Q4_K_XL.gguf ^
-          -ngl 99 -c 16384 -fa --host 127.0.0.1 --port 8080
+      llama serve -m C:\\local-models\\Qwen3.5-9B-UD-Q4_K_XL.gguf ^
+          -dev Vulkan1 -ngl 99 -c 16384 -fa on --host 127.0.0.1 --port 8080
 
-  Confirm the load log says "offloaded 33/33 layers to GPU" and does NOT
-  mention mmproj.
+  -dev Vulkan1 selects the NVIDIA GPU. Check your indices first:
+      llama serve --list-devices
+
+  Then confirm it loaded onto the right GPU (expect ~5970 MiB used):
+      nvidia-smi --query-gpu=memory.used --format=csv
 """
 
 MODELS_MISSING = """

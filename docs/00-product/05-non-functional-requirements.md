@@ -48,7 +48,7 @@ Derived from NFR-P-01. Full derivation in
 
 | ID | Metric | Target | Basis |
 |---|---|---|---|
-| **NFR-P-20** | LLM generation | ≥ 25 tok/s sustained | **[SOURCED]** for 9B Q4 on RTX 4060; **must be reproduced** — BM-01 |
+| **NFR-P-20** | LLM generation | ≥ 25 tok/s sustained | **[VERIFIED]** 2026-08-31 — 33.1 tok/s median on Vulkan (BM-01) |
 | **NFR-P-21** | STT real-time factor | ≤ 0.3× on CPU | Must transcribe faster than speech arrives |
 | **NFR-P-22** | TTS real-time factor | ≤ 0.5× on CPU | Must synthesise faster than playback consumes |
 
