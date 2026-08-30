@@ -28,7 +28,7 @@ record that precedes it.
 | **STT** | Parakeet TDT 0.6B v3 (ONNX) — **CPU** |
 | **TTS** | Kokoro-82M (ONNX) — **CPU** |
 | **Turn detection** | Silero VAD + Smart Turn v2 — **CPU** |
-| **Orchestration** | Python 3.11 + Pipecat |
+| **Orchestration** | Python 3.11, hand-written asyncio loop (no framework) |
 | **Audio** | Browser/WebRTC with echo cancellation — speakers supported |
 | **Target** | Windows 11, RTX 4060 Laptop (8 GB), 16 GB RAM |
 

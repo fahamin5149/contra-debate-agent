@@ -14,7 +14,7 @@ constraint that justified it has gone.
 |---|---|---|---|---|
 | [0001](0001-cascaded-pipeline-over-speech-to-speech.md) | Cascaded STT→LLM→TTS, not speech-to-speech | Accepted | High | Hard |
 | [0002](0002-llama-cpp-server-as-llm-runtime.md) | llama.cpp `llama-server` as a separate process | Accepted | High | Easy |
-| [0003](0003-pipecat-as-orchestration-framework.md) | Pipecat for orchestration | Accepted | Medium | Moderate |
+| [0003](0003-pipecat-as-orchestration-framework.md) | ~~Pipecat for orchestration~~ | **Superseded by 0013** | — | — |
 | [0004](0004-cpu-placement-for-stt-and-tts.md) | LLM on GPU; everything else on CPU | Accepted | High | Easy |
 | [0005](0005-parakeet-tdt-for-stt.md) | Parakeet TDT 0.6B v3 for STT | Accepted | Medium | Easy |
 | [0006](0006-kokoro-for-tts.md) | Kokoro-82M for TTS | Accepted | Medium | Easy |
@@ -24,6 +24,7 @@ constraint that justified it has gone.
 | [0010](0010-sqlite-for-session-persistence.md) | SQLite for persistence | Accepted | High | Easy |
 | [0011](0011-yaml-configuration-and-versioned-prompts.md) | YAML config; prompts as versioned files | Accepted | High | Easy |
 | [0012](0012-browser-webrtc-transport-with-aec.md) | Browser/WebRTC transport with AEC | Accepted | Medium-high | Moderate |
+| [0013](0013-hand-written-asyncio-pipeline-over-pipecat.md) | Hand-written asyncio pipeline, not Pipecat | Accepted | **High** — measured | Easy |
 
 ## Reading the columns
 

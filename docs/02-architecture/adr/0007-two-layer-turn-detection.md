@@ -35,7 +35,14 @@ interlocutor is a character defect rather than a technical one.
 | Layer | Model | Signal | Latency | Answers |
 |---|---|---|---|---|
 | **Acoustic** | Silero VAD | Audio energy | ~1 ms/frame | "Is sound happening?" |
-| **Semantic** | Pipecat Smart Turn v2 | Partial transcript | ~50–150 ms | "Is this person finished?" |
+| **Semantic** | Smart Turn v3.2 ONNX | Partial transcript | ~50–150 ms | "Is this person finished?" |
+
+> **Updated 2026-08-31.** Pipecat is no longer a dependency
+> ([ADR-0013](0013-hand-written-asyncio-pipeline-over-pipecat.md)), but its
+> package ships `smart-turn-v3.2-cpu.onnx`. Phase 2 loads that ONNX file
+> directly with `onnxruntime` — the same approach we took for Silero rather
+> than pulling in the PyTorch `silero-vad` package. We get the model without
+> the frame model that failed FR-13.
 
 **VAD never commits a turn.** It detects speech onset (driving barge-in) and
 sustained silence (inviting the semantic layer to evaluate). The semantic model

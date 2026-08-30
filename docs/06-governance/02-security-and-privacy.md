@@ -196,12 +196,17 @@ All models run locally after download. None calls home at runtime.
 | Kokoro-82M | Apache 2.0 | None |
 | Silero VAD | MIT | None |
 | llama.cpp | MIT | None |
-| Pipecat | BSD | **Audit** — framework defaults |
+| aiortc | BSD | None |
+| FastAPI / uvicorn | MIT / BSD | None |
 
-**Pipecat warrants an audit.** It is designed primarily for cloud-service
-pipelines and may include analytics or service-discovery defaults appropriate to
-that context and not to ours. IT-06 catches these behaviourally; the audit
-catches them deliberately.
+**The telemetry risk dropped when Pipecat did.** ADR-0003 would have brought in
+a framework built for cloud-service pipelines, with analytics defaults suited to
+that context and not to ours. [ADR-0013](../02-architecture/adr/0013-hand-written-asyncio-pipeline-over-pipecat.md)
+removed it, and the remaining dependencies are narrow, local libraries with no
+service-discovery behaviour.
+
+This does not retire the check. **IT-06 remains a release gate** — it catches
+telemetry behaviourally, including from transitive dependencies nobody audited.
 
 ---
 

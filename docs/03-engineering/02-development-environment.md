@@ -36,7 +36,7 @@ for zero benefit in a single-machine local app.
 > not a minor inconvenience — pip falls back to building from source, which needs
 > the MSVC build tools and routinely fails on packages with C extensions.
 >
-> `onnxruntime`, `silero-vad`, `sounddevice`, and Pipecat's transitive
+> `onnxruntime`, `aiortc`/PyAV, and their transitive
 > dependencies are all plausible candidates. 3.11 has the broadest coverage of
 > any supported version.
 
@@ -128,7 +128,7 @@ Fetches to `models/`:
 | Parakeet TDT 0.6B v3 ONNX | `istupakov/parakeet-tdt-0.6b-v3-onnx` | ~650 MB |
 | Kokoro-82M ONNX | `onnx-community/Kokoro-82M-v1.0-ONNX` | ~310 MB |
 | Silero VAD | bundled | ~2 MB |
-| Smart Turn v2 | via Pipecat | ~500 MB |
+| Smart Turn v3.2 (ONNX, Phase 2) | model file only | ~50 MB |
 
 **This is the only step requiring network access.** Everything afterwards runs
 offline (NFR-S-01), and US-501 verifies that by running with the adapter

@@ -213,7 +213,7 @@ shrink the LLM's share.
 | Item | GiB | Notes |
 |---|---|---|
 | Windows 11 | 3.5 | **[ASSUMED]** |
-| Python + Pipecat | 0.4 | |
+| Python runtime + asyncio orchestrator | 0.4 | |
 | Parakeet TDT ONNX | 1.2 | 0.6B params, CPU-resident |
 | Kokoro-82M ONNX | 0.3 | |
 | Silero VAD + turn detector | 0.6 | Turn detector is a 0.5B model |

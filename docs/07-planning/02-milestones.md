@@ -68,7 +68,7 @@ the work feels finished; it is done when the criteria are met
 | `SentenceSegmenter` with the min-unit rule | 3 h |
 | Kokoro TTS behind `TtsStage` | 4 h |
 | `ConversationState` **with FR-13 structure** | 6 h |
-| Pipecat assembly; **probe FR-13 expressibility** | 6 h |
+| ~~Pipecat assembly~~; **probe FR-13 expressibility** — probe FAILED, no assembly | 6 h |
 | Unit tests for core components | 6 h |
 
 ### Exit criteria
@@ -79,7 +79,7 @@ the work feels finished; it is done when the criteria are met
 - [ ] Unit suite runs in < 10 s with no models loaded
 - [ ] `ruff` import boundaries enforced — `debate/` imports no I/O library
 - [ ] `ConversationState` carries `text_spoken` / `text_generated` separately
-- [ ] **Confirmed** that Pipecat can express FR-13 truncation cleanly
+- [x] **Answered:** Pipecat CANNOT express FR-13 cleanly — ADR-0013
 
 ### The two non-obvious priorities
 

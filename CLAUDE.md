@@ -183,7 +183,7 @@ Read `docs/03-engineering/` first. The rules that are non-obvious:
 | Rule | Why |
 |---|---|
 | `debate/` imports **no** I/O library | It is the core; enforced by `ruff` banned-imports, not convention |
-| Pipecat only in `pipeline/assembly.py` | Framework as runtime, not architecture — keeps ADR-0003 reversible |
+| **No Pipecat.** Hand-written asyncio loop in `debate/session.py` | Its output transport drops frame metadata, so FR-13 is inexpressible — ADR-0013 |
 | One composition root (`app.py`) | Swapping a component is a one-line change |
 | Never block the event loop | A blocking call stalls **audio capture** — use `asyncio.to_thread` |
 | `cancel()` must abort the HTTP request | Not just stop reading the stream, or the GPU keeps generating unheard tokens |

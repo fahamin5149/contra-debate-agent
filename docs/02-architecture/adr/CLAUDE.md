@@ -145,13 +145,27 @@ default in the absence of an answer — and always name the OQ it depends on.
 
 ## Current set
 
-12 ADRs. Read `README.md` for the index with confidence and reversibility.
+13 ADRs, two superseded. Read `README.md` for the index with confidence and
+reversibility.
 
-The four whose reasoning is most worth understanding before changing anything:
+The five whose reasoning is most worth understanding before changing anything:
 
 | | Why |
 |---|---|
 | **ADR-0004** | LLM on GPU, everything else on CPU. The central resource decision; most others follow from it. |
 | **ADR-0001** | Cascaded, not speech-to-speech. Structural, and the reason transcripts exist at all. |
-| **ADR-0012** | Browser/WebRTC with AEC. Recent, and its non-obvious consequence — audio must be *played* by the browser — is easy to miss. |
+| **ADR-0012** | Browser/WebRTC with AEC. Its non-obvious consequence — audio must be *played* by the browser — is easy to miss. |
+| **ADR-0013** | No framework; hand-written asyncio loop. Backed by a measured spike, and the reason `debate/session.py` looks the way it does. |
 | **ADR-0009** | Python 3.11. The only `Hard` reversibility in the set. |
+
+### Two worked supersessions — read these to see the process pay off
+
+| | What happened |
+|---|---|
+| **0008 → 0012** | Marked *Provisional* pending OQ-01. The user answered "speakers", the assumption died, and the interface boundary kept the cost at ~3 days. |
+| **0003 → 0013** | Marked *Medium* confidence with one named probe. Phase 1 ran the probe **before** integrating, it failed, and the cost was **zero rework**. |
+
+> Both reversals were cheap for the same reason: the uncertainty was declared up
+> front, and the thing that would resolve it was scheduled before anything was
+> built on top. That is what Confidence, Reversibility, and "Revisit when" are
+> for — they are not documentation, they are a scheduling instruction.

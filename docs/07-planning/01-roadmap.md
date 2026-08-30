@@ -85,7 +85,7 @@ and resource budgets updated with measured values.
 spoken-history structure **now**, even though barge-in does not exist yet.
 Retrofitting it in Phase 2 means reworking the component barge-in depends on.
 
-**Also probe early:** whether Pipecat's frame model can express FR-13 truncation
+**Probed and answered (2026-08-31):** whether Pipecat's frame model can express FR-13 truncation
 cleanly. This is the specific integration risk in
 [ADR-0003](../02-architecture/adr/0003-pipecat-as-orchestration-framework.md),
 and finding it now is cheap.
@@ -236,7 +236,7 @@ and reading surface, valuable but not load-bearing.
 | BM-03 GIL-1 fails | **Serious.** Subprocess isolation for inference, or reconsider Python. Phase 1 lengthens materially. |
 | ~~OQ-01 → speakers~~ | ✅ **Happened.** Browser transport moved into Phase 1. +3 days, already absorbed below. |
 | **BM-05 double-talk fails** | Push-to-talk becomes the default; barge-in documented as requiring headphones. Product change, not a delay. |
-| Pipecat cannot express FR-13 | Consider DIY orchestration. Phase 1 lengthens; ADR-0003 revisited. |
+| ~~Pipecat cannot express FR-13~~ | ✅ **Happened.** Probe failed; ADR-0013 supersedes ADR-0003. Zero rework — Phase 1 had not integrated it. |
 | Sycophancy resists prompting | Phase 3 extends. Worst case: fine-tuning, which is a separate project. |
 
 The last row is the one with no bounded remedy — which is why RISK-08 scores 20

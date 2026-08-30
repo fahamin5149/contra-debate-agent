@@ -53,7 +53,7 @@ graph TB
         UI[Transcript UI<br/>state indicator]
     end
 
-    subgraph Orch["Orchestrator — Python 3.11, Pipecat<br/>CPU"]
+    subgraph Orch["Orchestrator — Python 3.11, asyncio<br/>CPU"]
         Pipeline[Pipeline runtime]
         VAD[Silero VAD]
         Turn[Smart Turn v2]
@@ -98,7 +98,7 @@ graph TB
 | Container | Tech | Runs on | Responsibility |
 |---|---|---|---|
 | **Browser page** | HTML + WebRTC | Browser | **Audio capture and playback, AEC/NS/AGC**, transcript display |
-| **Orchestrator** | Python 3.11 + Pipecat | **CPU** | VAD, turn detection, STT, TTS, debate state |
+| **Orchestrator** | Python 3.11 + asyncio | **CPU** | VAD, turn detection, STT, TTS, debate state |
 | **LLM server** | llama.cpp `llama-server` | **GPU** | Token generation, OpenAI-compatible API |
 | **Session store** | SQLite | Disk | Transcripts, timings, session metadata |
 | **Configuration** | YAML + text | Disk | Tunables and prompts, versioned separately from code |
@@ -250,7 +250,7 @@ orchestrator (FR-51).
 |---|---|---|
 | Pipeline architecture | Cascaded STT→LLM→TTS | [0001](adr/0001-cascaded-pipeline-over-speech-to-speech.md) |
 | LLM runtime | llama.cpp `llama-server` | [0002](adr/0002-llama-cpp-server-as-llm-runtime.md) |
-| Orchestration | Pipecat | [0003](adr/0003-pipecat-as-orchestration-framework.md) |
+| Orchestration | **Hand-written asyncio loop** | [0013](adr/0013-hand-written-asyncio-pipeline-over-pipecat.md) — supersedes [0003](adr/0003-pipecat-as-orchestration-framework.md) |
 | Compute placement | LLM on GPU, all else CPU | [0004](adr/0004-cpu-placement-for-stt-and-tts.md) |
 | STT | Parakeet TDT 0.6B v3 (ONNX) | [0005](adr/0005-parakeet-tdt-for-stt.md) |
 | TTS | Kokoro-82M (ONNX) | [0006](adr/0006-kokoro-for-tts.md) |

@@ -135,7 +135,15 @@ Consequence: swapping Parakeet for Whisper is a one-line change in `app.py`,
 which is exactly the property [ADR-0005](../02-architecture/adr/0005-parakeet-tdt-for-stt.md)
 relies on for its fallback plan.
 
-### 2.3 Pipecat is confined to `pipeline/assembly.py`
+### 2.3 ~~Pipecat is confined to `pipeline/assembly.py`~~ — no longer applies
+
+> **Superseded by [ADR-0013](../02-architecture/adr/0013-hand-written-asyncio-pipeline-over-pipecat.md).**
+> Pipecat is not a dependency; there is no `pipeline/` package. Orchestration is
+> a hand-written asyncio loop in `debate/session.py`. The `ruff` ban on
+> importing `pipecat` remains in place as a guard.
+>
+> The original rule is kept below because its *reasoning* still governs how we
+> treat any future framework.
 
 Framework as *runtime*, not as *architecture*
 ([ADR-0003](../02-architecture/adr/0003-pipecat-as-orchestration-framework.md)).
