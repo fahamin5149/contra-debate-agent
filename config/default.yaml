@@ -1,0 +1,55 @@
+# ─────────────────────────────────────────────────────────────
+# Contra — default configuration
+# Override in config/user.yaml (gitignored) or CONTRA_* env vars.
+# Every value here should cite the document that justifies it.
+# ─────────────────────────────────────────────────────────────
+
+llm:
+  base_url: "http://127.0.0.1:8080/v1"   # loopback only — NFR-S-03
+  model: "qwen3.5-9b"
+  timeout_s: 30
+  max_response_tokens: 220     # ~45 s of speech — FR-31
+  enable_thinking: false       # default on 9B; set explicitly so a model swap can't change it
+  sampling:                    # Unsloth instruct/general — Model Analysis §5.2
+    temperature: 0.7
+    top_p: 0.8
+    top_k: 20
+    min_p: 0.0
+    presence_penalty: 1.5      # HIGH on purpose: stops recycled talking points
+    repeat_penalty: 1.0        # disabled per vendor guidance
+
+audio:
+  sample_rate: 16000           # VAD + Parakeet native; avoids resampling
+  frame_ms: 20                 # transport frame size
+  output_buffer_ms: 100        # NFR-P-14; trades against barge-in speed
+  webrtc:
+    echo_cancellation: true    # MANDATORY with speakers — NFR-A-05, ADR-0012
+    noise_suppression: true    # also helps against laptop fan noise
+    auto_gain_control: true    # disable if it ducks user speech during double-talk
+
+vad:
+  threshold: 0.5
+  min_speech_ms: 100           # rejects coughs and clicks
+  silence_confirm_ms: 800      # Phase 1: fixed timer, no semantic detection
+
+stt:
+  model_dir: "models/parakeet-tdt-0.6b-v3-onnx"
+  num_threads: 4               # P-cores on i7-13620H (6P + 4E)
+
+tts:
+  model_path: "models/kokoro-v1.0.onnx"
+  voices_path: "models/voices-v1.0.bin"
+  voice: "af_heart"
+  speed: 1.0
+  min_unit_chars: 15           # ADR-0006 short-text penalty
+  max_unit_chars: 200
+
+ui:
+  host: "127.0.0.1"            # NFR-S-03 — never 0.0.0.0
+  port: 8000
+
+debate:
+  max_response_seconds: 45
+
+logging:
+  level: "INFO"

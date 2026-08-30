@@ -1,0 +1,69 @@
+[project]
+name = "contra"
+version = "0.1.0"
+description = "A fully local, offline voice agent that debates you."
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "aiortc>=1.9",
+    "av>=12.0",
+    "numpy>=1.26,<2.2",
+    "httpx>=0.27",
+    "pyyaml>=6.0",
+    "structlog>=24.1",
+    "onnxruntime>=1.19",
+    "onnx-asr>=0.5",
+    "kokoro-onnx>=0.4",
+    "soundfile>=0.12",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "ruff>=0.6", "mypy>=1.11"]
+
+[project.scripts]
+contra = "contra.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/contra"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = ["slow: requires models or network"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "TID"]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"onnx_asr".msg = "Only in speech/. Core depends on interfaces."
+"kokoro_onnx".msg = "Only in speech/."
+"onnxruntime".msg = "Only in speech/ and detect/."
+"aiortc".msg = "Only in audio/."
+"av".msg = "Only in audio/."
+"pipecat".msg = "Only in pipeline/assembly.py."
+"torch".msg = "Not a dependency. Use onnxruntime."
+
+[tool.ruff.lint.per-file-ignores]
+"src/contra/speech/*" = ["TID251"]
+"src/contra/detect/*" = ["TID251"]
+"src/contra/audio/*" = ["TID251"]
+"tests/*" = ["TID251"]
+"spikes/*" = ["TID251"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "contra.debate.*"
+strict = true
