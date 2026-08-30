@@ -4,6 +4,7 @@ import asyncio
 
 import numpy as np
 import onnx_asr
+import onnxruntime as ort
 
 from contra.audio.types import AudioFrame
 from contra.config.models import SttConfig
@@ -27,7 +28,18 @@ class ParakeetStt:
     """
 
     def __init__(self, config: SttConfig) -> None:
-        self._model = onnx_asr.load_model(config.model_dir)
+        opts = ort.SessionOptions()
+        opts.intra_op_num_threads = config.num_threads
+        opts.inter_op_num_threads = 1
+        # (model_type, local_path) — never a bare path, which onnx-asr would
+        # resolve against HuggingFace and break the offline guarantee.
+        self._model = onnx_asr.load_model(
+            config.model_type,
+            config.model_dir,
+            quantization=config.quantization,
+            sess_options=opts,
+            providers=["CPUExecutionProvider"],
+        )
         self._buf: list[bytes] = []
 
     def feed(self, frame: AudioFrame) -> None:

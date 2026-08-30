@@ -90,7 +90,15 @@ class VadConfig:
 
 @dataclass(frozen=True)
 class SttConfig:
+    # onnx-asr's first argument is a model NAME or TYPE, not a path. Passing a
+    # directory there makes it resolve against HuggingFace — which would break
+    # the offline guarantee (NFR-S-01). Use the architecture type plus an
+    # explicit local `model_dir` so nothing touches the network.
+    model_type: str = "nemo-conformer-tdt"
     model_dir: str = "models/parakeet-tdt-0.6b-v3-onnx"
+    # int8 is the right variant for CPU inference (ADR-0004): faster than fp32
+    # and 652 MB vs 2.4 GB on disk.
+    quantization: str | None = "int8"
     num_threads: int = 4
 
 
