@@ -69,9 +69,7 @@ def test_invariant_i3_spoken_is_always_prefix_of_dispatched():
         h = s.begin_agent_turn()
         s.record_dispatched(h, DISPATCHED)
         s.truncate_to_spoken(h, PlaybackPosition(1, 1, end))
-        spoken = next(
-            (m.content for m in reversed(s.messages()) if m.role == "assistant"), ""
-        )
+        spoken = next((m.content for m in reversed(s.messages()) if m.role == "assistant"), "")
         assert DISPATCHED.startswith(spoken.rstrip()), f"not a prefix at end={end}"
         assert len(spoken) <= max(end, 0)
 

@@ -96,7 +96,7 @@ def _coerce(cls: type, data: dict[str, Any], prefix: str) -> Any:
         target = hints[name]
         key = f"{prefix}.{name}"
         try:
-            if dataclasses.is_dataclass(target):
+            if isinstance(target, type) and dataclasses.is_dataclass(target):
                 kwargs[name] = _coerce(target, raw, key)
             elif target is bool:
                 kwargs[name] = _to_bool(raw)

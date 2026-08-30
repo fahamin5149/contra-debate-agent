@@ -9,18 +9,13 @@ Usage:  python scripts/fetch_models.py
 
 from __future__ import annotations
 
-import sys
 import urllib.request
 from pathlib import Path
 
 MODELS = Path(__file__).resolve().parent.parent / "models"
 
-SILERO_URL = (
-    "https://raw.githubusercontent.com/snakers4/silero-vad/master/src/silero_vad/data/silero_vad.onnx"
-)
-KOKORO_MODEL_URL = (
-    "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
-)
+SILERO_URL = "https://raw.githubusercontent.com/snakers4/silero-vad/master/src/silero_vad/data/silero_vad.onnx"
+KOKORO_MODEL_URL = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
 KOKORO_VOICES_URL = (
     "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
 )

@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 from contra.config.loader import ConfigError, load_config
+from contra.config.models import Config
 from contra.observability.logging import get_logger, setup_logging
 
 LLM_DOWN = """
@@ -26,7 +27,7 @@ MODELS_MISSING = """
 """
 
 
-def _missing_models(config) -> list[str]:
+def _missing_models(config: Config) -> list[str]:
     required = [
         Path("models/silero_vad.onnx"),
         Path(config.tts.model_path),

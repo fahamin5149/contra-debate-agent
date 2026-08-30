@@ -1,3 +1,5 @@
+import dataclasses
+
 import pytest
 
 from contra.audio.types import AudioChunk, AudioFrame, PlaybackPosition
@@ -6,7 +8,7 @@ from contra.debate.types import Message, Transcript, TurnHandle
 
 def test_audio_chunk_is_immutable():
     c = AudioChunk(samples=b"\x00\x01", text_span=(0, 10), duration_ms=20.0, sequence=0)
-    with pytest.raises(Exception):
+    with pytest.raises(dataclasses.FrozenInstanceError):
         c.sequence = 5  # type: ignore[misc]
 
 

@@ -105,9 +105,7 @@ class TtsConfig:
 
     def __post_init__(self) -> None:
         if self.min_unit_chars >= self.max_unit_chars:
-            raise ConfigError(
-                "tts.min_unit_chars", self.min_unit_chars, "< tts.max_unit_chars"
-            )
+            raise ConfigError("tts.min_unit_chars", self.min_unit_chars, "< tts.max_unit_chars")
 
 
 @dataclass(frozen=True)

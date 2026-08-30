@@ -27,9 +27,7 @@ def test_loads_defaults(tmp_path: Path):
 
 
 def test_rejects_non_loopback_host(tmp_path: Path):
-    (tmp_path / "default.yaml").write_text(
-        "ui: {host: '0.0.0.0', port: 8000}\n", encoding="utf-8"
-    )
+    (tmp_path / "default.yaml").write_text("ui: {host: '0.0.0.0', port: 8000}\n", encoding="utf-8")
     with pytest.raises(ConfigError) as exc:
         load_config(tmp_path)
     assert "loopback" in str(exc.value).lower()
@@ -48,9 +46,7 @@ def test_user_yaml_overrides_default(tmp_path: Path):
     (tmp_path / "default.yaml").write_text(
         "llm:\n  sampling: {temperature: 0.7}\nui: {port: 8000}\n", encoding="utf-8"
     )
-    (tmp_path / "user.yaml").write_text(
-        "llm:\n  sampling: {temperature: 0.9}\n", encoding="utf-8"
-    )
+    (tmp_path / "user.yaml").write_text("llm:\n  sampling: {temperature: 0.9}\n", encoding="utf-8")
     cfg = load_config(tmp_path)
     assert cfg.llm.sampling.temperature == 0.9
     assert cfg.ui.port == 8000  # untouched key survives the merge

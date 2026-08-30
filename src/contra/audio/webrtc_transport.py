@@ -4,6 +4,7 @@ import asyncio
 import fractions
 from collections import deque
 from collections.abc import AsyncIterator
+from typing import cast
 
 import av
 from aiortc import MediaStreamTrack, RTCPeerConnection, RTCSessionDescription
@@ -159,7 +160,9 @@ class WebRtcTransport:
         ts = 0.0
         try:
             while True:
-                av_frame = await track.recv()
+                # MediaStreamTrack.recv() is typed Frame | Packet; an audio
+                # track always yields AudioFrame.
+                av_frame = cast(av.AudioFrame, await track.recv())
                 for resampled in resampler.resample(av_frame):
                     buf += bytes(resampled.planes[0])[: resampled.samples * 2]
                 while len(buf) >= self._frame_bytes:
