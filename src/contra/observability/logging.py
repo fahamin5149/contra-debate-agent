@@ -18,6 +18,13 @@ def setup_logging(level: str = "INFO") -> None:
     """
     numeric = getattr(logging, level.upper(), logging.INFO)
     logging.basicConfig(format="%(message)s", stream=sys.stdout, level=numeric)
+
+    # aiortc/aioice log every ICE candidate pair transition at INFO, which
+    # buries our own per-turn lines. They are diagnostic only — raise to
+    # WARNING unless the app itself is running at DEBUG.
+    if numeric > logging.DEBUG:
+        for noisy in ("aioice", "aiortc", "aioice.ice", "httpx", "httpcore"):
+            logging.getLogger(noisy).setLevel(logging.WARNING)
     structlog.configure(
         processors=[
             structlog.contextvars.merge_contextvars,
