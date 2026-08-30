@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contra</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      font: 15px/1.5 system-ui, -apple-system, Segoe UI, sans-serif;
+      max-width: 42rem; margin: 3rem auto; padding: 0 1rem;
+    }
+    h1 { font-size: 1.4rem; margin-bottom: .25rem; }
+    .sub { opacity: .65; margin-top: 0; }
+    #state {
+      font-weight: 600; padding: .35rem .8rem; border-radius: .4rem;
+      display: inline-block; background: #8882;
+    }
+    #state[data-s="listening"] { background: #2a72d422; color: #2a72d4; }
+    #state[data-s="thinking"]  { background: #c8860022; color: #c88600; }
+    #state[data-s="speaking"]  { background: #2a9d5422; color: #2a9d54; }
+    #state[data-s="error"]     { background: #d4342a22; color: #d4342a; }
+    button { font: inherit; padding: .5rem 1.1rem; border-radius: .4rem; cursor: pointer; }
+    #log {
+      margin-top: 1.5rem; white-space: pre-wrap; font-size: 12.5px;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      opacity: .8; max-height: 22rem; overflow-y: auto;
+      border-top: 1px solid #8883; padding-top: .75rem;
+    }
+    .warn { color: #d4342a; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>Contra</h1>
+  <p class="sub">Local voice debate agent &mdash; Phase 1 walking skeleton</p>
+
+  <p><button id="start">Start session</button></p>
+  <p>State: <span id="state" data-s="idle">idle</span></p>
+
+  <!--
+    Inbound agent audio MUST be played here, by the browser.
+    Chrome's AEC3 can only cancel audio it is itself rendering; if Python
+    played this through the system device the echo canceller would have no
+    reference signal and the agent would hear itself. See ADR-0012.
+  -->
+  <audio id="agent" autoplay></audio>
+
+  <div id="log"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
