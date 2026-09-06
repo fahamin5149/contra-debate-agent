@@ -2,7 +2,33 @@
 
 | Status | Date | Confidence | Reversibility |
 |---|---|---|---|
-| Accepted | 2026-08-30 | Medium | Moderate |
+| **SUPERSEDED** by [ADR-0013](0013-hand-written-asyncio-pipeline-over-pipecat.md) | 2026-08-30 | — | — |
+
+> ## ⚠ Superseded on 2026-08-31 — the revisit trigger fired
+>
+> This ADR named one concrete revisit trigger: *"Phase 1 spike shows FR-13
+> cannot be expressed cleanly in Pipecat's frame model."*
+>
+> **Phase 1 ran that spike against pipecat-ai 1.8.1 and it failed.**
+> `BaseOutputTransport.handle_audio_frame` re-chunks audio into fresh objects
+> and drops frame metadata, and no frame carries playback position — so there
+> is no way to map played audio back to a text offset without patching private
+> internals. Evidence:
+> [`spikes/pipecat_fr13/README.md`](../../../spikes/pipecat_fr13/README.md).
+>
+> **The current decision is [ADR-0013](0013-hand-written-asyncio-pipeline-over-pipecat.md):**
+> a hand-written asyncio session loop.
+>
+> Retained unedited below. The reasoning is still worth reading — the
+> "Alternatives considered" section correctly identified the DIY loop as the
+> close-run alternative, and the AEC argument that decided against it was itself
+> superseded by [ADR-0012](0012-browser-webrtc-transport-with-aec.md) moving AEC
+> into the browser.
+>
+> **Cost of the reversal: zero rework.** Phase 1 deliberately had not integrated
+> Pipecat, because this question was open. Marking an ADR Medium-confidence with
+> a named probe, and scheduling that probe before building on the decision, is
+> what made the reversal free.
 
 ## Context
 

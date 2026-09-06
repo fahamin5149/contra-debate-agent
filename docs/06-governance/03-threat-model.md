@@ -117,7 +117,8 @@ point they have made a deliberate choice, and the code documents the consequence
 
 **Scenario.** A dependency — or a transitive one — sends telemetry, checks for
 model updates, or reports anonymised usage. This is *common* in ML tooling and
-usually enabled by default. Pipecat is designed primarily for cloud pipelines and
+usually enabled by default. This risk dropped when Pipecat was removed
+(ADR-0013) — the remaining dependencies are narrow local libraries — but
 is the most likely source.
 
 The user believes the tool is offline. It is not, in some small way, and they

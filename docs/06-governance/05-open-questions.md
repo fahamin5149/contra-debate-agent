@@ -4,6 +4,7 @@
 |---|---|
 | **Status** | Live — close entries as they are answered |
 | **Last updated** | 2026-08-30 |
+| **Phase 2 planning update** | 2026-09-06 — OQ-10 added; no existing question closed |
 
 Known unknowns. Each has an owner, a resolution route, and a **default** — what
 happens if it is never answered — so that no question blocks progress by
@@ -246,6 +247,7 @@ reasoning is worth more than the conclusion.
 | **OQ-03** | Prefix caching on hybrid? | Latency design | BM-02 |
 | **OQ-08** | GIL release on ONNX? | CPU placement | BM-03 |
 | **OQ-09** | Double-talk AEC performance | Barge-in with speakers | BM-05 |
+| **OQ-10** | Browser output acknowledgement correctness | Proposed ADR-0014 and FR-13 acceptance | M2 browser/acoustic output tests |
 | OQ-06 | Interim transcripts | UI live text | BM-03 |
 | OQ-04 | Persuadability calibration | Debate quality | Empirical |
 | OQ-05 | Response length | FR-31 tuning | Layer 1 signals |
@@ -287,3 +289,34 @@ most-tested implementations in existence. Verify before building on it.
 **Resolution.** BM-05: measure self-trigger rate with the user silent, then
 measure whether user speech survives during agent playback.
 
+---
+
+## OQ-10 — Can browser output acknowledgements safely bound spoken history?
+
+| | |
+|---|---|
+| **Owner** | Amin (technical) |
+| **Status** | Open — added during Phase 2 planning, 2026-09-06 |
+| **Related** | [FR-13](../00-product/02-product-requirements.md), [I-3](../02-architecture/04-data-flow-and-state.md), [Proposed ADR-0014](../02-architecture/adr/0014-browser-acknowledged-playback.md) |
+| **Resolves via** | Tasks 7–9 and 17 of the [Phase 2 plan](../superpowers/plans/2026-09-06-phase-2-turn-detection-and-barge-in.md) |
+
+**Question.** Can the supported browser/device produce a conservative source
+sample acknowledgement from AudioWorklet rendering and output-device timestamps
+without crediting audio that has not been audible, including stop, suspension,
+device change, and delayed control messages?
+
+**Evidence so far.** [VERIFIED by source inspection, 2026-09-06] The existing
+[`PlaybackQueue.read()`](../../src/contra/audio/webrtc_transport.py) credits
+sender consumption before browser rendering. This establishes a missing
+verification boundary; it does not establish an observed user-facing failure.
+
+**Current default.** [ASSUMED] The timestamp-and-guard proposal in ADR-0014 can
+provide a conservative boundary on the supported device. Keep the ADR Proposed
+until its measured acceptance conditions pass. Never use a fixed sender-delay
+subtraction or an always-empty assistant history as a substitute.
+
+**Resolution.** Compare acknowledgements with actual recorded audible output
+at synthesis-unit boundaries across ≥20 interruptions and output-failure trials.
+Record uncertainty, browser/device versions, output guard and context behavior.
+Any over-credit invalidates the chosen guard/design. AEC validity for the new
+playback and PTT capture graph remains separately tracked by OQ-09/RISK-12.

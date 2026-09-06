@@ -93,19 +93,39 @@ dependency set.
 
 ## Step 4 — llama.cpp
 
-Download the Windows CUDA build from
-[llama.cpp releases](https://github.com/ggml-org/llama.cpp/releases):
-`llama-b####-bin-win-cuda-x64.zip`.
-
-> **Use a recent build.** Qwen3.5 uses a hybrid Gated DeltaNet architecture that
-> older releases cannot load. A 2025 build will fail with an unrecognised
-> architecture error.
+The simplest route on Windows is winget, which installs the unified `llama` CLI:
 
 ```powershell
-mkdir C:\llama.cpp
-# extract the zip contents there
-C:\llama.cpp\llama-server.exe --version
+winget install llama.cpp
+llama --version     # verified working: 0.3.0-dev, build 10679
 ```
+
+> **Use a recent build.** Qwen3.5 uses a hybrid Gated DeltaNet architecture that
+> older releases cannot load. A 2025 build fails with an unrecognised
+> architecture error.
+
+### ⚠️ Check which device it will use
+
+The winget package is a **Vulkan** build, not CUDA, and on a hybrid-graphics
+laptop it sees **both** GPUs:
+
+```powershell
+llama serve --list-devices
+```
+```
+Available devices:
+  Vulkan0: Intel(R) UHD Graphics              (8054 MiB, 7395 MiB free)
+  Vulkan1: NVIDIA GeForce RTX 4060 Laptop GPU (7956 MiB, 7188 MiB free)
+```
+
+> **You must pass `-dev Vulkan1`** (or whichever index is your NVIDIA card).
+> Without it, device selection can land on the Intel iGPU — which is
+> catastrophically slow and presents as a model or config problem rather than a
+> device-selection one.
+
+**Vulkan is fast enough.** Measured 33.1 tok/s median against a 25 tok/s target
+([BM-01](../../benchmarks/results/BM-01-llm-throughput.md)), so a CUDA build is
+not required. CUDA is generally faster on NVIDIA and remains a lever in reserve.
 
 ---
 
@@ -154,18 +174,27 @@ fully offline.
 Before touching the application, confirm the LLM works alone:
 
 ```powershell
-C:\llama.cpp\llama-server.exe `
+llama serve `
   -m C:\local-models\Qwen3.5-9B-UD-Q4_K_XL.gguf `
-  -ngl 99 -c 16384 -fa --host 127.0.0.1 --port 8080
+  -dev Vulkan1 -ngl 99 -c 16384 -fa on `
+  --host 127.0.0.1 --port 8080
 ```
 
-**In the output, confirm:**
+**Confirm it actually landed on the NVIDIA GPU** — the log is terse, so check
+VRAM directly:
 
-| Look for | Meaning |
+```powershell
+nvidia-smi --query-gpu=memory.used,memory.free --format=csv
+```
+
+| Expect | Meaning |
 |---|---|
-| `offloaded 33/33 layers to GPU` | **All layers on GPU.** Fewer means catastrophically slow. |
-| No mention of `mmproj` | Vision tower not loaded |
-| `HTTP server listening 127.0.0.1:8080` | Loopback only |
+| **~5,970 MiB used** | Model is resident on the 4060 ✅ |
+| ~0 MiB used | It went to the Intel iGPU — fix `-dev` |
+| `listening on http://127.0.0.1:8080` | Loopback only |
+
+Do **not** pass `--mmproj`: the 918 MB vision projector is unused here and would
+consume VRAM for nothing.
 
 Then in a second terminal:
 

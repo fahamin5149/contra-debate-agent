@@ -157,7 +157,7 @@ class TurnDetector(Protocol):
 
 | | |
 |---|---|
-| **Implementation** | Pipecat Smart Turn v2 |
+| **Implementation** | Smart Turn v3.2 ONNX via `onnxruntime` (model file only, no Pipecat — ADR-0013) |
 | **Fallbacks** | LiveKit turn-detector → punctuation heuristic |
 | **Budget** | ≤ 150 ms (NFR-P-10) |
 | **Placement** | CPU |

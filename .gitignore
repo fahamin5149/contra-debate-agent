@@ -6,6 +6,16 @@
 __pycache__/
 *.pyc
 .venv/
+# Trailing pattern also catches .venv-spike (throwaway spike environments).
+# NOTE: git has no inline comments — a comment after a pattern on the same
+# line becomes part of the pattern.
+.venv*/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
 
 # Personal config overrides
 config/user.yaml

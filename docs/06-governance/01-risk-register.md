@@ -337,11 +337,11 @@ IT-02 barge-in passes with speakers active.
 |---|---|---|---|
 | **RISK-08** | Sycophancy defeats the product | **20** | Open — mitigations designed |
 | **RISK-09** | Persuasive fabrication harms the user | **15** | Open — managed, never closed |
-| RISK-02 | LLM throughput below target | 12 | Open — BM-01 |
+| ~~RISK-02~~ | ~~LLM throughput below target~~ | — | ✅ **RETIRED** — BM-01, 33.1 tok/s vs 25 target |
 | RISK-03 | Prefix caching ineffective | 12 | Open — BM-02 |
 | RISK-05 | Turn detection feels wrong | 12 | Open — fixtures + escape hatch |
 | **RISK-12** | **AEC fails during double-talk** | **12** | **Open — BM-05** (new, from OQ-01) |
-| RISK-01 | llama.cpp support recent | 10 | Open — BM-01 |
+| ~~RISK-01~~ | ~~llama.cpp support recent~~ | — | ✅ **RETIRED** — BM-01, model loads and generates |
 | RISK-04 | Windows dependency hell | 9 | Mitigated — Python 3.11 pin |
 | RISK-06 | CPU speech RTF under load | 9 | Open — BM-03 |
 | RISK-10 | Scope creep | 9 | Mitigated — documented scope |
