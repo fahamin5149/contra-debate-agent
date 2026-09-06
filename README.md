@@ -20,6 +20,29 @@ record that precedes it.
 
 ---
 
+## Start the stack
+
+Contra uses two processes. Start the model server in one PowerShell terminal:
+
+```powershell
+llama serve `
+  -m "C:\local-models\Qwen3.5-9B-UD-Q4_K_XL.gguf" `
+  -dev Vulkan1 -ngl 99 -c 16384 -fa on `
+  --host 127.0.0.1 --port 8080
+```
+
+Wait for `listening on http://127.0.0.1:8080`. Then, in a second terminal with
+the virtual environment activated, start Contra:
+
+```powershell
+python -m contra
+```
+
+Open <http://127.0.0.1:8000>. Stop each process with `Ctrl+C` in its terminal.
+
+Stop-Process -Id 17512,21816
+---
+
 ## What it will be
 
 | | |

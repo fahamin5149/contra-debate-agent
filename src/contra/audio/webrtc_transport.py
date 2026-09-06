@@ -155,22 +155,71 @@ class WebRtcTransport:
         return {"sdp": pc.localDescription.sdp, "type": pc.localDescription.type}
 
     async def _read_track(self, track: MediaStreamTrack) -> None:
+        import os
+
+        import numpy as np
+
+        capture_path = os.environ.get("CONTRA_DEBUG_CAPTURE")
+        captured: list[bytes] = []
+        described = False
+
         resampler = make_resampler(self._sample_rate)
         buf = b""
         ts = 0.0
+        n_frames = 0
+        peak = 0.0
         try:
             while True:
                 # MediaStreamTrack.recv() is typed Frame | Packet; an audio
                 # track always yields AudioFrame.
                 av_frame = cast(av.AudioFrame, await track.recv())
                 for resampled in resampler.resample(av_frame):
-                    buf += bytes(resampled.planes[0])[: resampled.samples * 2]
+                    if not described:
+                        described = True
+                        log.info(
+                            "inbound_format",
+                            src_rate=av_frame.sample_rate,
+                            src_format=str(av_frame.format.name),
+                            src_layout=str(av_frame.layout.name),
+                            src_samples=av_frame.samples,
+                            out_rate=resampled.sample_rate,
+                            out_format=str(resampled.format.name),
+                            out_layout=str(resampled.layout.name),
+                            out_samples=resampled.samples,
+                            plane_bytes=len(bytes(resampled.planes[0])),
+                            expected_bytes=resampled.samples * 2,
+                        )
+                    chunk = bytes(resampled.planes[0])[: resampled.samples * 2]
+                    if capture_path is not None and len(captured) < 500:
+                        captured.append(chunk)
+                        if len(captured) == 500:
+                            import soundfile as sf
+
+                            pcm = np.frombuffer(b"".join(captured), dtype=np.int16)
+                            sf.write(capture_path, pcm, self._sample_rate, subtype="PCM_16")
+                            log.info(
+                                "debug_capture_written",
+                                path=capture_path,
+                                seconds=round(len(pcm) / self._sample_rate, 1),
+                            )
+                    buf += chunk
                 while len(buf) >= self._frame_bytes:
                     piece, buf = buf[: self._frame_bytes], buf[self._frame_bytes :]
                     frame = AudioFrame(
                         samples=piece, sample_rate=self._sample_rate, timestamp_ms=ts
                     )
                     ts += frame.duration_ms
+
+                    # Diagnostic: distinguishes "no frames" from "silent frames"
+                    # from "audio fine but VAD not firing". Logged once a second.
+                    n_frames += 1
+                    pcm = np.frombuffer(piece, dtype=np.int16)
+                    if pcm.size:
+                        peak = max(peak, float(np.abs(pcm).max()) / 32768.0)
+                    if n_frames % 50 == 0:
+                        log.info("audio_in", frames=n_frames, peak_1s=round(peak, 4))
+                        peak = 0.0
+
                     try:
                         self._inbound.put_nowait(frame)
                     except asyncio.QueueFull:

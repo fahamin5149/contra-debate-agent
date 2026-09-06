@@ -65,6 +65,8 @@ class SileroVad:
         self._state = np.zeros((2, 1, 128), dtype=np.float32)
         self._speaking = False
         self._silence_ms = 0.0
+        self._n_windows = 0
+        self._peak_prob = 0.0
 
     def process(self, frame: AudioFrame) -> VadEvent:
         windows = self._acc.push(frame)
@@ -83,6 +85,15 @@ class SileroVad:
             prob = max(prob, float(np.asarray(out).reshape(-1)[0]))
 
         window_ms = len(windows) * WINDOW_SAMPLES / self._sample_rate * 1000.0
+
+        # Diagnostic: if audio_in shows signal but peak_prob stays near zero,
+        # the threshold is the problem, not the audio path.
+        self._n_windows += len(windows)
+        self._peak_prob = max(self._peak_prob, prob)
+        if self._n_windows >= 30:
+            log.info("vad", peak_prob=round(self._peak_prob, 3), threshold=self._threshold)
+            self._n_windows = 0
+            self._peak_prob = 0.0
 
         if prob >= self._threshold:
             self._silence_ms = 0.0

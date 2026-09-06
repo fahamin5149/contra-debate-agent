@@ -25,6 +25,7 @@ constraint that justified it has gone.
 | [0011](0011-yaml-configuration-and-versioned-prompts.md) | YAML config; prompts as versioned files | Accepted | High | Easy |
 | [0012](0012-browser-webrtc-transport-with-aec.md) | Browser/WebRTC transport with AEC | Accepted | Medium-high | Moderate |
 | [0013](0013-hand-written-asyncio-pipeline-over-pipecat.md) | Hand-written asyncio pipeline, not Pipecat | Accepted | **High** — measured | Easy |
+| [0014](0014-browser-acknowledged-playback.md) | Browser-acknowledged playback and sample-delimited PTT capture | **Proposed — 2026-09-06** | Medium; acoustic/output evidence pending | Moderate |
 
 ## Reading the columns
 
