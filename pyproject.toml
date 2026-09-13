@@ -61,6 +61,7 @@ select = ["E", "F", "I", "UP", "B", "TID"]
 "src/contra/audio/*" = ["TID251"]
 "tests/*" = ["TID251"]
 "spikes/*" = ["TID251"]
+"benchmarks/*" = ["TID251"]
 
 [tool.mypy]
 python_version = "3.11"
