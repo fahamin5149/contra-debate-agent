@@ -8,6 +8,7 @@ from benchmarks.bm05_echo_cancellation import evaluate
 from benchmarks.metrics import (
     PrefixCacheVerdict,
     classify_prefix_cache,
+    missed_service_windows,
     real_time_factor,
     word_error_rate,
 )
@@ -84,6 +85,14 @@ def test_bm03_discards_warmup_and_reports_repeated_median() -> None:
     measured = repeated_median(lambda: next(values), repeats=3)
 
     assert measured == 2.0
+
+
+@pytest.mark.parametrize(
+    ("lateness", "expected"),
+    [(0.011, 0), (0.0199, 0), (0.0201, 1), (0.061, 3)],
+)
+def test_bm03_counts_whole_missed_service_windows(lateness: float, expected: int) -> None:
+    assert missed_service_windows(lateness, period_seconds=0.02) == expected
 
 
 def test_bm05_requires_eighteen_preserved_double_talk_trials() -> None:

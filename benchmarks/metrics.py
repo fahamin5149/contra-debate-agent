@@ -50,6 +50,15 @@ def real_time_factor(wall_seconds: float, audio_seconds: float) -> float:
     return wall_seconds / audio_seconds
 
 
+def missed_service_windows(lateness_seconds: float, period_seconds: float) -> int:
+    """Count complete service periods lost after a fixed scheduling deadline."""
+    if not math.isfinite(period_seconds) or period_seconds <= 0:
+        raise ValueError("period_seconds must be positive and finite")
+    if not math.isfinite(lateness_seconds):
+        raise ValueError("lateness_seconds must be finite")
+    return max(0, math.floor(lateness_seconds / period_seconds))
+
+
 def _words(text: str) -> list[str]:
     return [word for word in _NON_WORD.sub(" ", text.casefold()).split() if word]
 

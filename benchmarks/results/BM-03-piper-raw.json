@@ -1,0 +1,54 @@
+{
+  "threads": {
+    "4": {
+      "stt": {
+        "5s": {
+          "wall_ms": 317.57509999442846,
+          "rtf": 0.06351501999888569,
+          "missed_service_windows": 0
+        },
+        "20s": {
+          "wall_ms": 1133.6012000101618,
+          "rtf": 0.05668006000050809,
+          "missed_service_windows": 0
+        }
+      },
+      "tts": {
+        "15_chars": {
+          "wall_ms": 57.488500024192035,
+          "audio_ms": 940.408163265306,
+          "rtf": 0.0611314344875306,
+          "missed_service_windows": 0
+        },
+        "40_chars": {
+          "wall_ms": 140.61879995279014,
+          "audio_ms": 2728.344671201814,
+          "rtf": 0.051539969065143326,
+          "missed_service_windows": 0
+        },
+        "120_chars": {
+          "wall_ms": 307.89629998616874,
+          "audio_ms": 6211.337868480726,
+          "rtf": 0.04957004537598584,
+          "missed_service_windows": 0
+        }
+      },
+      "dropped_frames": 0,
+      "silence": {
+        "wall_ms": 580.9675000491552,
+        "words": 0,
+        "missed_service_windows": 0
+      },
+      "turn_detection_ms": 14.95850004721433,
+      "turn_detection_missed_service_windows": 0
+    }
+  },
+  "llm_url": "http://127.0.0.1:8080/v1",
+  "isolation": "subprocess",
+  "reserved_logical_cpus": [
+    0,
+    1
+  ],
+  "tts_engine": "piper",
+  "windows_timer_resolution_ms": 1
+}
