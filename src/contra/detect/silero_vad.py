@@ -10,6 +10,7 @@ from contra.observability.logging import get_logger
 log = get_logger(__name__)
 
 WINDOW_SAMPLES = 512  # Silero v5 requires exactly this at 16 kHz
+CONTEXT_SAMPLES = 64  # Silero's ONNX wrapper prepends 4 ms of rolling context
 
 
 class WindowAccumulator:
@@ -63,6 +64,7 @@ class SileroVad:
         self._sample_rate = sample_rate
         self._acc = WindowAccumulator()
         self._state = np.zeros((2, 1, 128), dtype=np.float32)
+        self._context = np.zeros((1, CONTEXT_SAMPLES), dtype=np.float32)
         self._speaking = False
         self._silence_ms = 0.0
         self._n_windows = 0
@@ -75,13 +77,15 @@ class SileroVad:
 
         prob = 0.0
         for window in windows:
+            model_input = np.concatenate((self._context, window.reshape(1, -1)), axis=1)
             feeds: dict[str, np.ndarray] = {
-                "input": window.reshape(1, -1).astype(np.float32),
+                "input": model_input.astype(np.float32),
                 "state": self._state,
                 "sr": np.array(self._sample_rate, dtype=np.int64),
             }
             feeds = {k: v for k, v in feeds.items() if k in self._input_names}
             out, self._state = self._sess.run(None, feeds)
+            self._context = model_input[:, -CONTEXT_SAMPLES:]
             prob = max(prob, float(np.asarray(out).reshape(-1)[0]))
 
         window_ms = len(windows) * WINDOW_SAMPLES / self._sample_rate * 1000.0
@@ -111,5 +115,6 @@ class SileroVad:
     def reset(self) -> None:
         self._acc.reset()
         self._state = np.zeros((2, 1, 128), dtype=np.float32)
+        self._context = np.zeros((1, CONTEXT_SAMPLES), dtype=np.float32)
         self._speaking = False
         self._silence_ms = 0.0

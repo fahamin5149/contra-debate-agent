@@ -3,11 +3,12 @@
 > **What these tests can and cannot verify.**
 >
 > Silero is a *neural* VAD, not an energy threshold — it is trained to reject
-> non-speech. Measured on this model (2026-08-31), peak speech probability is:
+> non-speech. Measured through the corrected rolling-context wrapper on this
+> model (2026-09-13), peak speech probability is:
 >
->     silence         0.0006
->     synthetic tone  0.0007
->     white noise     0.0020
+>     silence         0.0089
+>     synthetic tone  0.1165
+>     white noise     0.0398
 >
 > All far below the 0.5 threshold. That is correct behaviour and precisely why
 > Silero was chosen, but it means **no synthetic signal can exercise the

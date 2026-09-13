@@ -1,5 +1,7 @@
+import numpy as np
+
 from contra.audio.types import AudioFrame
-from contra.detect.silero_vad import WindowAccumulator
+from contra.detect.silero_vad import SileroVad, WindowAccumulator
 
 
 def frame(n_samples: int) -> AudioFrame:
@@ -35,3 +37,38 @@ def test_large_frame_yields_multiple_windows():
     windows = acc.push(frame(1600))
     assert len(windows) == 3
     assert all(len(w) == 512 for w in windows)
+
+
+def test_silero_prepends_rolling_context_to_each_model_window(monkeypatch):
+    """Catch omission of Silero's required 64-sample ONNX context."""
+
+    class Input:
+        def __init__(self, name):
+            self.name = name
+
+    class Session:
+        def __init__(self, *args, **kwargs):
+            self.inputs = []
+
+        def get_inputs(self):
+            return [Input("input"), Input("state"), Input("sr")]
+
+        def run(self, output_names, feeds):
+            self.inputs.append(feeds["input"].copy())
+            return np.array([[0.0]], dtype=np.float32), feeds["state"]
+
+    fake_session = Session()
+    monkeypatch.setattr(
+        "contra.detect.silero_vad.ort.InferenceSession",
+        lambda *args, **kwargs: fake_session,
+    )
+    vad = SileroVad("unused.onnx")
+    pcm = np.arange(1024, dtype=np.int16)
+
+    vad.process(AudioFrame(pcm.tobytes(), sample_rate=16000, timestamp_ms=0))
+
+    assert [model_input.shape for model_input in fake_session.inputs] == [(1, 576), (1, 576)]
+    np.testing.assert_array_equal(fake_session.inputs[0][0, :64], np.zeros(64))
+    np.testing.assert_allclose(
+        fake_session.inputs[1][0, :64], pcm[448:512].astype(np.float32) / 32768.0
+    )
