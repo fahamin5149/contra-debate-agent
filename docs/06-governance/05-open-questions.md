@@ -3,8 +3,8 @@
 | | |
 |---|---|
 | **Status** | Live — close entries as they are answered |
-| **Last updated** | 2026-08-30 |
-| **Phase 2 planning update** | 2026-09-06 — OQ-10 added; no existing question closed |
+| **Last updated** | 2026-09-13 |
+| **Phase 2 execution update** | BM-02 closed OQ-03; BM-03 closed OQ-08 and changed ADR-0009; OQ-09/OQ-10 remain open |
 
 Known unknowns. Each has an owner, a resolution route, and a **default** — what
 happens if it is never answered — so that no question blocks progress by
@@ -36,36 +36,6 @@ They are arguably different products sharing a pipeline.
 Structured mode is a Phase 5 candidate.
 
 **Resolution.** Use v1 for a while and see which is missed.
-
----
-
-## OQ-03 — Does prefix caching work on hybrid DeltaNet? ⚠ **Highest technical uncertainty**
-
-| | |
-|---|---|
-| **Owner** | Amin (technical) |
-| **Status** | Open |
-| **Resolves via** | [BM-02](../04-quality/03-benchmark-plan.md) |
-| **Related** | [RISK-03](01-risk-register.md) |
-
-**Question.** Does `llama-server` reuse the conversation prefix efficiently on a
-model where 24 of 32 layers carry recurrent state rather than a KV cache?
-
-**Why it matters.** Prefix caching is trivial for pure attention. Hybrid
-architectures need state *checkpointing*, which llama.cpp implements via
-`llama_memory_hybrid` — but its effectiveness is unverified.
-
-> If it does not work, **every turn re-prefills the whole conversation.** At turn
-> 20 that is ~3,000 tokens before the first output token, pushing TTFT to several
-> seconds and making NFR-P-01 unreachable. It also removes speculative prefill,
-> our largest planned optimisation
-> ([Latency Budget §5](../02-architecture/07-latency-budget.md)).
-
-**Current default.** Assume it works; measure before relying on it. Do not build
-speculative prefill until BM-02 confirms.
-
-**Resolution.** BM-02, in Phase 0. Also instrumented per turn in production
-(`prefix_cache_hit`).
 
 ---
 
@@ -133,7 +103,9 @@ the few subjective questions with a genuine quantitative proxy.
 | **Related** | FR-40, US-403, [ADR-0005](../02-architecture/adr/0005-parakeet-tdt-for-stt.md) |
 
 **Question.** Parakeet TDT is **not a streaming model**. How do we show live text
-as the user speaks, and feed partial transcripts to the turn detector?
+as the user speaks, and, only in heuristic fallback mode, produce the partial
+text that fallback needs? Smart Turn v3.2 consumes raw audio and does not depend
+on the answer to this question.
 
 **Options**
 
@@ -144,8 +116,9 @@ as the user speaks, and feed partial transcripts to the turn detector?
 | Turn-detector-only partials; no live display | Loses US-403 |
 | Accept per-turn text rather than per-word | Simplest; less responsive UI |
 
-**Current default.** Re-transcribe every 500 ms. The CPU has capacity, and the
-waste is acceptable.
+**Current default.** Do not run periodic partial STT in semantic mode. If live
+display or heuristic fallback is enabled later, re-transcribe every 500 ms only
+for that explicitly selected feature.
 
 **Resolution.** BM-03 measures the cost. If it competes with final transcription
 under load, reconsider.
@@ -176,36 +149,40 @@ indistinguishable from a crash.
 
 ---
 
-## OQ-08 — Does the GIL release during ONNX inference?
+## Closed questions
+
+### ✅ OQ-08 — Does thread-isolated ONNX inference preserve the audio loop? → **NO**
 
 | | |
 |---|---|
-| **Owner** | Amin (technical) |
-| **Status** | Open |
-| **Resolves via** | [BM-03](../04-quality/03-benchmark-plan.md), sub-test GIL-1 |
-| **Related** | [ADR-0009](../02-architecture/adr/0009-python-as-orchestration-language.md), [ADR-0004](../02-architecture/adr/0004-cpu-placement-for-stt-and-tts.md) |
+| **Closed** | 2026-09-12 |
+| **Answer** | GIL release is insufficient; thread/native-pool inference missed audio deadlines |
+| **Evidence** | [BM-03](../../benchmarks/results/BM-03-cpu-speech-rtf.md): best configuration missed 170 frame deadlines |
+| **Decision now lives in** | [ADR-0009](../02-architecture/adr/0009-python-as-orchestration-language.md) |
 
-**Question.** Does ONNX Runtime genuinely release the GIL, so that
-`asyncio.to_thread` parallelises STT and TTS against the audio event loop?
-
-**Why it matters.** If it does not, CPU inference blocks audio capture and
-playback — **dropped frames, lost user speech, glitched output.** It would
-undermine the CPU-placement decision and, in the worst case, the choice of Python
-itself.
-
-> This is the assumption whose failure would be most expensive to correct.
-> Rewriting the orchestrator is the "Hard" reversibility case in
-> [ADR-0009](../02-architecture/adr/0009-python-as-orchestration-language.md).
-
-**Current default.** Assume it does (it is the documented behaviour). Measure
-before building on it.
-
-**Resolution.** BM-03 GIL-1: count dropped 20 ms audio frames during concurrent
-inference. Must be **zero**.
+**What it determined.** BM-03 measures the product-relevant outcome rather than
+trying to attribute every scheduler stall to the Python GIL. Regardless of
+whether an individual ONNX call releases it, thread-based model execution did
+not preserve the 20 ms audio schedule under realistic load. Spawned,
+model-owning subprocesses are therefore required and must pass a repeat BM-03.
 
 ---
 
-## Closed questions
+### ✅ OQ-03 — Does prefix caching work on hybrid DeltaNet? → **YES**
+
+| | |
+|---|---|
+| **Closed** | 2026-09-12 |
+| **Answer** | llama.cpp efficiently reuses Qwen3.5-9B's hybrid prefix state |
+| **Evidence** | [BM-02](../../benchmarks/results/BM-02-prefix-cache.md): cached TTFT 320.9 ms versus 1,079.1 ms perturbed; 6.18× post-prefill TTFT speedup |
+| **Decision now lives in** | [ADR-0002](../02-architecture/adr/0002-llama-cpp-server-as-llm-runtime.md) and the [Latency Budget](../02-architecture/07-latency-budget.md) |
+
+**What it determined.** Prefix caching works on the target llama.cpp build and
+hybrid DeltaNet model. NFR-P-12 is met at turn 20, and speculative prefill is a
+viable Phase 3 optimization. Production still records cache behavior per turn
+because a model/runtime upgrade can invalidate this result.
+
+---
 
 ### ✅ OQ-01 — Headphones or speakers? → **SPEAKERS**
 
@@ -244,8 +221,8 @@ reasoning is worth more than the conclusion.
 | ID | Question | Blocks | Resolves via |
 |---|---|---|---|
 | ~~OQ-01~~ | ~~Headphones or speakers?~~ | — | ✅ **Closed — speakers** |
-| **OQ-03** | Prefix caching on hybrid? | Latency design | BM-02 |
-| **OQ-08** | GIL release on ONNX? | CPU placement | BM-03 |
+| ~~OQ-03~~ | ~~Prefix caching on hybrid?~~ | — | ✅ **Closed — works; BM-02** |
+| ~~OQ-08~~ | ~~Thread-isolated ONNX preserves audio loop?~~ | — | ✅ **Closed — no; BM-03** |
 | **OQ-09** | Double-talk AEC performance | Barge-in with speakers | BM-05 |
 | **OQ-10** | Browser output acknowledgement correctness | Proposed ADR-0014 and FR-13 acceptance | M2 browser/acoustic output tests |
 | OQ-06 | Interim transcripts | UI live text | BM-03 |

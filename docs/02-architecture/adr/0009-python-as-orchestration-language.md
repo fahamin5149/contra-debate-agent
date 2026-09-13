@@ -2,7 +2,7 @@
 
 | Status | Date | Confidence | Reversibility |
 |---|---|---|---|
-| Accepted | 2026-08-30 | High | **Hard** |
+| Accepted — amended after BM-03 | 2026-08-30; amended 2026-09-12 | High | **Hard** |
 
 ## Context
 
@@ -18,6 +18,11 @@ raw compute performance from the decision.
 
 **Python 3.11**, with async/await for pipeline concurrency.
 
+CPU model inference runs in **spawned, model-owning subprocesses**, not in the
+audio/event-loop process. The parent sends bounded typed requests and receives
+generation-tagged results. It may discard or cancel delivery immediately; a
+worker that does not stop within its deadline is terminated and replaced.
+
 **Not 3.13**, despite 3.13 being installed on the development machine
 **[VERIFIED]**.
 
@@ -30,11 +35,11 @@ Python binding:
 
 | Component | Availability |
 |---|---|
-| Pipecat | Python only |
+| Hand-written asyncio pipeline (ADR-0013) | Python |
 | `onnx-asr` (Parakeet) | Python |
 | `kokoro-onnx` | Python |
 | Silero VAD | Python (PyTorch/ONNX) |
-| Smart Turn v2 | Python, via Pipecat |
+| Smart Turn v3.2 | ONNX Runtime from Python |
 | `openai` SDK | Python (among others) |
 
 Choosing anything else means writing bindings or reimplementing model inference.
@@ -108,14 +113,20 @@ for maximum safety; if a dependency requires 3.12+, moving is trivial.
 - Large community for the specific stack (Pipecat + ONNX + local LLM).
 
 ### Negative
-- **The GIL.** CPU-bound work — STT and TTS inference, which
+- **The GIL and native thread-pool contention.** CPU-bound work — STT and TTS inference, which
   [ADR-0004](0004-cpu-placement-for-stt-and-tts.md) puts on the CPU — must
   release it or the audio event loop stalls.
 
-  *Mitigation:* ONNX Runtime releases the GIL during inference, so this should be
-  fine. **Should be** — it must be verified in BM-03, because if it does not
-  hold, the entire CPU-placement decision is compromised. This is the single
-  most important negative consequence in this ADR.
+  **[VERIFIED by BM-03, 2026-09-12]** Thread-based isolation did not protect the
+  20 ms capture schedule under concurrent GPU generation: the best tested
+  configuration missed 170 frame deadlines, despite meeting the long-form STT,
+  40+-character TTS, and Smart Turn throughput targets. The earlier assumption
+  is rejected. See [BM-03](../../../benchmarks/results/BM-03-cpu-speech-rtf.md).
+
+  *Mitigation:* each CPU model is owned by a spawned subprocess with a bounded
+  request channel. This contains GIL/native-pool scheduling, permits forceful
+  recovery from a hung native call, and keeps the audio loop free of model
+  objects. BM-03 must pass on this exact design before M2 application work.
 
 - **Garbage-collection pauses** add latency jitter, inflating P95
   ([Latency Budget §9](../07-latency-budget.md)).
@@ -129,10 +140,9 @@ for maximum safety; if a dependency requires 3.12+, moving is trivial.
 
 ## Revisit when
 
-- **BM-03 shows GIL contention causing audio dropouts or latency spikes.**
-  Mitigations in order: move inference to a subprocess; use ONNX Runtime's
-  threading more aggressively; in the extreme, rewrite the audio path in a native
-  extension.
+- A repeat of BM-03 still shows audio dropouts with subprocess isolation. Next
+  mitigations: set worker affinity/process priority and bound ONNX threads; in
+  the extreme, move the capture clock to a native helper.
 - Distribution to non-technical users becomes a goal — packaging Python for
   Windows is genuinely unpleasant and might justify reconsidering.
 - A credible Rust or Go voice-agent framework with these model integrations

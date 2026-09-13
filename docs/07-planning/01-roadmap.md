@@ -100,7 +100,7 @@ and finding it now is cheap.
 
 | Build |
 |---|
-| Semantic turn detection (Smart Turn v2) with the decision policy |
+| Semantic turn detection (Smart Turn v3.2, raw-audio input) with the decision policy |
 | Barge-in: stop playback, cancel TTS, **cancel LLM server-side** |
 | FR-13 spoken-history truncation, with invariant I-3 asserted |
 | Pre-buffer retaining speech onset across the transition |

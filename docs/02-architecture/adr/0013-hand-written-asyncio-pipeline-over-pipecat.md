@@ -84,9 +84,12 @@ unchanged, and the browser now handles AEC
 ## Consequences
 
 ### Positive
-- **FR-13 works.** Verified by unit tests (invariant I-3) and by
-  `tests/integration/test_webrtc_loopback.py`, which shows `PlaybackPosition`
-  advancing correctly over a live peer connection with real Opus and ICE.
+- **FR-13's state/truncation structure works at the sender boundary.** Unit
+  tests assert invariant I-3, and `tests/integration/test_webrtc_loopback.py`
+  shows sender-side `PlaybackPosition` advancing over a live peer connection
+  with real Opus and ICE. This does **not** prove which samples the browser output
+  device rendered. [Proposed ADR-0014](0014-browser-acknowledged-playback.md)
+  defines the acknowledgement refinement required for end-to-end FR-13.
 - One fewer large dependency, and a materially smaller install.
 - No framework abstractions between us and the audio path — debugging is direct.
 - The loop is small enough to hold in your head, which matters most in exactly

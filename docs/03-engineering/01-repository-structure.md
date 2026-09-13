@@ -32,7 +32,7 @@ contra-debate-agent/
 │   ├── detect/
 │   │   ├── interfaces.py        # VadStage, TurnDetector protocols
 │   │   ├── silero_vad.py
-│   │   ├── smart_turn.py        # Pipecat Smart Turn v2
+│   │   ├── smart_turn.py        # Smart Turn v3.2 ONNX, raw audio
 │   │   └── heuristic_turn.py    # punctuation fallback
 │   │
 │   ├── speech/

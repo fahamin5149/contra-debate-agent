@@ -97,12 +97,18 @@ planned optimisation.
 
 **Related:** [OQ-03](05-open-questions.md).
 
+**Resolution — 2026-09-12.** **[VERIFIED by BM-02]** Cached TTFT was 320.9 ms
+median versus 1,079.1 ms with a perturbed prefix (3.36× advantage), and turn-20
+cached TTFT was 332.6 ms. Speculative prefill reduced the following request's
+TTFT from 1,189.3 ms to 192.3 ms. **RISK-03 is retired** for the pinned
+model/runtime and must be reopened after either changes.
+
 ---
 
 ### RISK-04 — Windows dependency hell
 | L | I | Score |
 |---|---|---|
-| 3 | 3 | **9** |
+| 5 | 3 | **15** ⚠ **MATERIALIZED in BM-03** |
 
 **Description.** **[VERIFIED]** the dev machine runs Python 3.13. ML wheels lag
 Python releases; on Windows a missing wheel means a source build requiring MSVC
@@ -157,10 +163,11 @@ idle machines**. Ours runs an audio pipeline and Python event loop concurrently.
 falls progressively further behind for the entire session.
 
 **Mitigation**
-- [BM-03](../04-quality/03-benchmark-plan.md) measures **under concurrent GPU
-  load**, not idle
+- [BM-03](../../benchmarks/results/BM-03-cpu-speech-rtf.md) measured **under
+  concurrent GPU load** and failed the frame-drop and short-TTS gates
+- Amended ADR-0009 requires model-owning spawned subprocesses and a repeat BM-03
 - Fallbacks: faster-whisper small.en, Piper
-- Thread count tunable; cap to P-cores on the hybrid CPU
+- Process affinity and ONNX thread count remain tunable on the hybrid CPU
 
 **Retires when:** BM-03 confirms STT RTF < 0.3 and TTS RTF < 0.5 under load.
 
@@ -338,12 +345,12 @@ IT-02 barge-in passes with speakers active.
 | **RISK-08** | Sycophancy defeats the product | **20** | Open — mitigations designed |
 | **RISK-09** | Persuasive fabrication harms the user | **15** | Open — managed, never closed |
 | ~~RISK-02~~ | ~~LLM throughput below target~~ | — | ✅ **RETIRED** — BM-01, 33.1 tok/s vs 25 target |
-| RISK-03 | Prefix caching ineffective | 12 | Open — BM-02 |
+| ~~RISK-03~~ | ~~Prefix caching ineffective~~ | — | ✅ **RETIRED** — BM-02, 3.36× cache advantage |
 | RISK-05 | Turn detection feels wrong | 12 | Open — fixtures + escape hatch |
 | **RISK-12** | **AEC fails during double-talk** | **12** | **Open — BM-05** (new, from OQ-01) |
 | ~~RISK-01~~ | ~~llama.cpp support recent~~ | — | ✅ **RETIRED** — BM-01, model loads and generates |
 | RISK-04 | Windows dependency hell | 9 | Mitigated — Python 3.11 pin |
-| RISK-06 | CPU speech RTF under load | 9 | Open — BM-03 |
+| **RISK-06** | CPU speech RTF under load | **15** | **Materialized — subprocess mitigation required** |
 | RISK-10 | Scope creep | 9 | Mitigated — documented scope |
 | RISK-11 | Barge-in truncation wrong | 9 | Mitigated — invariant + tests |
 | RISK-07 | Thermal throttling | 6 | Open — BM-01 thermal run |

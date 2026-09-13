@@ -21,8 +21,8 @@ stateDiagram-v2
     CONFIRMING --> LISTENING: user confirms
 
     LISTENING --> THINKING: turn committed
-    THINKING --> SPEAKING: first audio chunk queued
-    SPEAKING --> LISTENING: playback complete
+    THINKING --> SPEAKING: browser acknowledges first rendered sample
+    SPEAKING --> LISTENING: browser acknowledges playback complete
     SPEAKING --> LISTENING: barge-in
     THINKING --> LISTENING: barge-in
 

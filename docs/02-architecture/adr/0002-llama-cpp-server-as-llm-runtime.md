@@ -98,6 +98,15 @@ operational complexity for no benefit at our scale.
 ### Neutral
 - Ties us to GGUF. Fine — it is the best-supported local format.
 
+## Verification
+
+**[VERIFIED by BM-02, 2026-09-12]** On llama.cpp build 10679, the stable-prefix
+20-turn series had 320.9 ms median TTFT versus 1,079.1 ms with a perturbed
+system prompt (3.36× advantage). A zero-token speculative prefill reduced the
+immediate full-request TTFT from 1,189.3 ms to 192.3 ms. Hybrid-state prefix
+caching and speculative prefill are therefore supported by this pinned build;
+repeat BM-02 after model or runtime upgrades.
+
 ## Revisit when
 
 - Ollama gains `mmproj` support **and** the operational simplicity is worth

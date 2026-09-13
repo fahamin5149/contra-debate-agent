@@ -195,7 +195,7 @@ Foreground, measured:
 | TTS-1 | 15-char unit | TTFB, RTF |
 | TTS-2 | 40-char unit | TTFB, RTF |
 | TTS-3 | 120-char sentence | TTFB, RTF |
-| TD-1 | Partial transcript | Inference ms (NFR-P-10) |
+| TD-1 | Immutable 16 kHz audio snapshot, last 8 s | Inference ms (NFR-P-10) |
 | GIL-1 | 20 ms audio frames during inference | **Dropped-frame count** |
 
 Repeat at `num_threads` = 4, 6, 8 to find the P-core sweet spot.

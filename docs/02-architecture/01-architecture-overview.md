@@ -56,7 +56,7 @@ graph TB
     subgraph Orch["Orchestrator — Python 3.11, asyncio<br/>CPU"]
         Pipeline[Pipeline runtime]
         VAD[Silero VAD]
-        Turn[Smart Turn v2]
+        Turn[Smart Turn v3.2]
         STT[Parakeet TDT<br/>ONNX]
         TTS[Kokoro-82M<br/>ONNX]
         Debate[Debate engine<br/>prompt + state]
@@ -140,7 +140,7 @@ sequenceDiagram
     A->>S: buffered audio
     U->>A: pauses
     V-->>T: silence ≥ 250 ms
-    S-->>T: partial transcript
+    S-->>T: immutable 16 kHz audio snapshot
     T->>T: complete?
     alt incomplete
         T-->>V: keep listening
@@ -254,7 +254,7 @@ orchestrator (FR-51).
 | Compute placement | LLM on GPU, all else CPU | [0004](adr/0004-cpu-placement-for-stt-and-tts.md) |
 | STT | Parakeet TDT 0.6B v3 (ONNX) | [0005](adr/0005-parakeet-tdt-for-stt.md) |
 | TTS | Kokoro-82M (ONNX) | [0006](adr/0006-kokoro-for-tts.md) |
-| Turn detection | Silero VAD + Smart Turn v2 | [0007](adr/0007-two-layer-turn-detection.md) |
+| Turn detection | Silero VAD + Smart Turn v3.2 | [0007](adr/0007-two-layer-turn-detection.md) |
 | Audio transport | **Browser/WebRTC with AEC** | [0012](adr/0012-browser-webrtc-transport-with-aec.md) — supersedes [0008](adr/0008-headphones-first-audio-transport.md) |
 | Language | Python 3.11 | [0009](adr/0009-python-as-orchestration-language.md) |
 | Persistence | SQLite | [0010](adr/0010-sqlite-for-session-persistence.md) |

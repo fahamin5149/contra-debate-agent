@@ -101,7 +101,7 @@ the work feels finished; it is done when the criteria are met
 | | Est. |
 |---|---|
 | **Record fixture suite from real argumentative speech** | 4 h |
-| Smart Turn v2 integration | 5 h |
+| Smart Turn v3.2 raw-audio integration | 5 h |
 | Decision policy with thresholds and safety valve | 4 h |
 | Pre-buffer retaining speech onset | 3 h |
 | Barge-in: stop playback, cancel TTS, **abort the LLM request** | 6 h |

@@ -35,7 +35,7 @@ interlocutor is a character defect rather than a technical one.
 | Layer | Model | Signal | Latency | Answers |
 |---|---|---|---|---|
 | **Acoustic** | Silero VAD | Audio energy | ~1 ms/frame | "Is sound happening?" |
-| **Semantic** | Smart Turn v3.2 ONNX | Partial transcript | ~50–150 ms | "Is this person finished?" |
+| **Semantic** | Smart Turn v3.2 ONNX | Immutable 16 kHz waveform snapshot (last 8 s) | ~20–150 ms | "Is this person finished?" |
 
 > **Updated 2026-08-31.** Pipecat is no longer a dependency
 > ([ADR-0013](0013-hand-written-asyncio-pipeline-over-pipecat.md)), but its
@@ -46,15 +46,16 @@ interlocutor is a character defect rather than a technical one.
 
 **VAD never commits a turn.** It detects speech onset (driving barge-in) and
 sustained silence (inviting the semantic layer to evaluate). The semantic model
-reads the partial transcript and decides.
+reads an immutable snapshot of the raw 16 kHz waveform, crops or left-pads it to
+eight seconds, and returns a completion probability. It does not require STT.
 
 ### Decision policy
 
 | Condition | Action |
 |---|---|
 | Silence < 250 ms | Keep listening — do not invoke the model |
-| Silence ≥ 250 ms, transcript **incomplete** | Extend window to 1,500 ms |
-| Silence ≥ 250 ms, transcript **complete** | **Commit** |
+| Silence ≥ 250 ms, completion probability below threshold | Extend window to 1,500 ms |
+| Silence ≥ 250 ms, completion probability at/above threshold | **Commit** |
 | Silence ≥ 2,000 ms | Commit regardless — safety valve |
 
 The 2,000 ms row is a backstop against a wedged session if the model
@@ -80,10 +81,9 @@ A Qwen2.5-0.5B fine-tune, "selected for strong performance on this task while
 enabling low-latency CPU inference" **[SOURCED]**, Apache-licensed, well
 documented on [Hugging Face](https://huggingface.co/livekit/turn-detector).
 
-Genuinely competitive with Smart Turn v2. Rejected as primary only because Smart
-Turn ships with Pipecat ([ADR-0003](0003-pipecat-as-orchestration-framework.md)),
-removing an integration. **We can adopt LiveKit's model without adopting
-LiveKit's framework** — it is a model file, not a platform.
+Genuinely competitive with Smart Turn v3.2. Rejected as primary because it is
+text-based and would require partial STT on every pause. **We can adopt LiveKit's
+model without adopting LiveKit's framework** — it is a model file, not a platform.
 
 ### Deepgram Flux — disqualified
 
@@ -122,15 +122,16 @@ would blow NFR-P-10 by itself.
 - Matches 2026 industry practice.
 
 ### Negative
-- **Adds 150 ms to the latency budget** (NFR-P-10). Partly recovered by running
-  it concurrently with STT finalisation
-  ([Latency Budget §4](../07-latency-budget.md)).
+- **Adds a bounded CPU inference step to the latency budget** (NFR-P-10).
+  BM-03 measured 20.6 ms at eight ONNX threads, but the thread-based combined
+  pipeline failed its frame-drop gate; amended ADR-0009 requires subprocess
+  isolation before this timing qualifies the application architecture.
 - **Tuning is empirical, not analytical.** The thresholds above are starting
   guesses. Getting this right needs recorded audio of real pausing behaviour and
   iteration — it cannot be reasoned to.
-- Depends on partial transcripts, which Parakeet does not stream natively
-  ([ADR-0005](0005-parakeet-tdt-for-stt.md)). Mitigated by re-transcribing the
-  buffer every ~500 ms.
+- Requires the reviewed Whisper-compatible log-mel frontend and an immutable
+  audio snapshot. Partial transcripts are used only by the explicit punctuation
+  fallback, not by semantic mode.
 - Failure mode is subtle: the system works, tests pass, and it *feels* wrong.
   [RISK-05](../../06-governance/01-risk-register.md).
 

@@ -12,7 +12,7 @@
 
 **Goal:** Complete natural turn detection and interruption on the target Windows laptop: preserve speech onset, stop audible output, abort LLM generation, commit only acknowledged spoken history, and provide a complete push-to-talk bypass.
 
-**Architecture:** Keep [ADR-0013](../../02-architecture/adr/0013-hand-written-asyncio-pipeline-over-pipecat.md)'s hand-written asyncio orchestration, with one state owner and independently running input, inference, and response workers. Smart Turn v3.2 receives immutable audio snapshots on CPU. Proposed ADR-0014 makes browser output acknowledgements authoritative for FR-13; its transport refinement has a separate acceptance gate.
+**Architecture:** Keep [ADR-0013](../../02-architecture/adr/0013-hand-written-asyncio-pipeline-over-pipecat.md)'s hand-written asyncio orchestration, with one state owner and independently running input and response tasks. After BM-03 failed on 2026-09-12, STT, TTS, and Smart Turn are owned by spawned subprocess workers rather than `asyncio.to_thread`; see amended ADR-0009 and Task 6. Smart Turn v3.2 receives immutable audio snapshots on CPU. Proposed ADR-0014 makes browser output acknowledgements authoritative for FR-13; its transport refinement has a separate acceptance gate.
 
 **Tech Stack:** Python 3.11, asyncio, existing FastAPI/httpx/aiortc/PyAV, CPU ONNX Runtime, Parakeet, Kokoro, Silero, Smart Turn v3.2, vanilla browser JavaScript and AudioWorklet. Node's built-in test runner for pure JavaScript; local Chromium/Playwright only for browser integration tests. Pin dependencies at execution; install-time downloads must never become runtime downloads.
 
@@ -26,7 +26,7 @@ The following quoted constraints apply to every task. New implementation choices
 - “**No Pipecat.** Hand-written asyncio loop in `debate/session.py`” — root instructions / ADR-0013.
 - “`debate/` imports **no** I/O library” — root instructions. Move the existing concrete httpx client outside the core.
 - “One composition root (`app.py`)” — root instructions.
-- “Never block the event loop” — root instructions; model work runs in owned workers using `asyncio.to_thread`.
+- “Never block the event loop” — root instructions; BM-03 rejected thread-only isolation, so model work runs in bounded spawned subprocess workers.
 - “No audio, transcript, or derived data leaves the machine. Ever.” — NFR-S-01.
 - “All service ports bind to `127.0.0.1`, never `0.0.0.0`.” — NFR-S-03.
 - “Raw audio is not persisted by default.” — NFR-S-04. Fixture recording is an explicit development operation.
@@ -129,7 +129,7 @@ Paths below are repository-relative. “Modify” includes preserving current us
 | Create | `src/contra/audio/ring_buffer.py` | Sample-indexed pre-roll and capture limits — 3 |
 | Create | `src/contra/detect/turn_policy.py` | Pure silence/decision policy — 4 |
 | Create | `src/contra/detect/smart_turn.py`, `src/contra/detect/whisper_features.py`, `src/contra/detect/heuristic_turn.py` | Model adapter, reviewed frontend, explicit fallback — 4, 12 |
-| Create | `src/contra/runtime/inference_worker.py`, `src/contra/runtime/__init__.py` | One owned CPU worker per model — 6 |
+| Create | `src/contra/runtime/inference_process.py`, `src/contra/runtime/__init__.py` | One spawned, model-owning CPU process per model — 6 |
 | Create / move | `src/contra/llm/client.py`, `src/contra/llm/interfaces.py`, `src/contra/llm/__init__.py` | Concrete HTTP outside debate core — 5 |
 | Modify | `src/contra/speech/interfaces.py`, `src/contra/speech/parakeet_stt.py`, `src/contra/speech/kokoro_tts.py` | Immutable request inputs and generation-safe adapters — 6 |
 | Modify | `src/contra/audio/types.py`, `src/contra/audio/interfaces.py` | Generation/sample/receipt contracts — 7 |
@@ -737,42 +737,43 @@ new one. Keep the original request ID until cleanup is complete.
   within 200 ms; request closure itself must complete within 100 ms.
 - [ ] Run both client unit files; commit with `fix(llm): abort owned streaming requests`.
 
-### Task 6: Give CPU inference jobs bounded ownership and generation-safe cancellation
+### Task 6: Isolate CPU inference in bounded, generation-safe subprocesses
 
 **Depends on:** 2, 4.
 
-**Files:** Create `runtime/inference_worker.py`, `runtime/__init__.py`; modify
+**Files:** Create `runtime/inference_process.py`, `runtime/__init__.py`; modify
 `speech/interfaces.py`, `speech/parakeet_stt.py`, `speech/kokoro_tts.py`,
 `detect/smart_turn.py`; tests `tests/unit/test_inference_worker.py`,
-`tests/unit/test_speech_cancellation.py`.
+`tests/unit/test_speech_cancellation.py` and
+`tests/integration/test_inference_process.py`.
 
-**Interfaces:** `InferenceWorker.submit(key: tuple[int, int], function: Callable,
-args: tuple) -> asyncio.Future`, `cancel(key) -> None`, `async aclose() -> None`.
-One active job and at most one queued job per worker. A final STT job replaces a
-queued partial, never an active native call. No concurrent entry into a shared
-model object.
+**Interfaces:** `InferenceProcess.submit(key: tuple[int, int], operation: str,
+payload: bytes) -> asyncio.Future`, `cancel(key) -> None`, `async aclose() ->
+None`. One active job and at most one queued job per process. A final STT job
+replaces a queued partial, never an active native call. Each child loads and
+exclusively owns one model; model objects and arbitrary callables never cross
+the Windows `spawn` boundary.
 
 **[VERIFIED: Python API semantics]** Cancelling an await of `to_thread` does
 not provide a mechanism to stop arbitrary native inference already running.
 [Python asyncio reference](https://docs.python.org/3.11/library/asyncio-task.html#asyncio.to_thread).
-This design stops delivery immediately and tracks the native call until it
-finishes; it does not claim to preempt ONNX computation.
+BM-03 proved that merely tracking the thread is insufficient: native thread
+pools still starved the capture schedule. This design stops delivery
+immediately and gives the supervisor a bounded option to terminate and replace
+a stuck or obsolete worker process.
 
-- [ ] Write a cancellation test with threading events, not elapsed sleeps.
+- [ ] Write a cancellation test with multiprocessing events, not elapsed sleeps.
 
 ```python
 import asyncio
-import threading
-from contra.runtime.inference_worker import InferenceWorker
+import multiprocessing
+from contra.runtime.inference_process import InferenceProcess
 
 async def test_cancelled_native_result_is_not_delivered():
-    started, release = threading.Event(), threading.Event()
-    def blocked():
-        started.set()
-        release.wait(timeout=2)
-        return "obsolete"
-    worker = InferenceWorker()
-    result = worker.submit((1, 0), blocked, ())
+    context = multiprocessing.get_context("spawn")
+    started, release = context.Event(), context.Event()
+    worker = InferenceProcess.for_test(started=started, release=release)
+    result = worker.submit((1, 0), "blocked_echo", b"obsolete")
     assert await asyncio.to_thread(started.wait, 1)
     worker.cancel((1, 0))
     release.set()
@@ -781,42 +782,34 @@ async def test_cancelled_native_result_is_not_delivered():
 ```
 
 - [ ] Run the worker test; expect missing module.
-- [ ] Implement a long-lived worker task that owns each `to_thread` invocation.
-  Cancelling a request cancels its result future, not the worker task. The
-  worker awaits completion before taking the next job, then discards results
-  whose future is cancelled. Queue replacement explicitly cancels the replaced
-  future; queue overflow is a named busy result, never silent loss.
+- [ ] Implement a long-lived spawned process that owns one model and accepts
+  typed, serializable request envelopes over bounded multiprocessing queues.
+  The asyncio parent bridge uses `asyncio.to_thread` only for short blocking IPC
+  waits, never for model inference. Cancelling a request cancels its result
+  future and sends a cancel envelope. Queue replacement explicitly cancels the
+  replaced future; queue overflow is a named busy result, never silent loss.
 
 ```python
-# Body of the owned worker loop; Job holds key, function, args, and future.
-while not self._closing or self._pending is not None:
-    job = await self._take_next_job()
-    if job is None:
+# Child-process outline; envelopes contain key, operation, and immutable bytes.
+model = load_model_once(config)
+for request in request_queue:
+    if request.operation == "shutdown":
         break
-    if job.future.cancelled():
-        continue
-    try:
-        value = await asyncio.to_thread(job.function, *job.args)
-    except Exception as exc:
-        if not job.future.done():
-            job.future.set_exception(exc)
-    else:
-        if not job.future.done():
-            job.future.set_result(value)
-    finally:
-        self._active = None
+    response_queue.put(run_operation(model, request))
 ```
 
-`Job` is a frozen dataclass with the four named fields. `_take_next_job()` waits
-on an `asyncio.Event`, atomically moves `_pending` to `_active`, clears the event,
-and returns `None` when closing with no pending job. `submit()` creates a loop
-future, rejects closing, replaces/cancels pending only for an explicitly newer
-revision of the same utterance, otherwise raises `WorkerBusy`. `cancel()` also
-removes matching pending jobs. `aclose()` cancels pending work, signals closing,
-and waits for the active native call up to the configured shutdown timeout.
-Timeout reports shutdown failure; it does not pretend the thread was killed.
-A worker that hangs in native code requires the measured subprocess redesign
-gate in Task 1, not accumulating more threads.
+Request and response envelopes are frozen dataclasses with primitive/bytes
+fields and explicit error payloads. `submit()` creates a loop future, rejects
+closing, and replaces/cancels pending work only for an explicitly newer revision
+of the same utterance; otherwise it raises `WorkerBusy`. A generation/revision
+fence discards late child results. `aclose()` sends shutdown and waits up to the
+configured deadline, then terminates and joins the child. Unexpected child exit
+fails active/pending futures and may restart once within a bounded policy. No
+audio/transcript bytes are written to disk or logged.
+
+- [ ] Repeat BM-03 against these subprocess adapters. Do not advance until
+  dropped frames are zero and all throughput gates pass, or amend ADR-0009 again
+  with measured evidence and a new architecture.
 
 - [ ] Replace Parakeet's mutable `feed/reset` buffer API with `transcribe(snapshot)`.
   Validate 16 kHz, convert immutable PCM in the owned worker, and return

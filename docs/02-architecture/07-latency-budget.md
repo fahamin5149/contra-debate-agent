@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| **Status** | Draft — **unvalidated**, every figure is estimated or sourced |
-| **Last updated** | 2026-08-30 |
+| **Status** | Draft — partially measured by BM-01/BM-02/BM-03; end-to-end remains unverified |
+| **Last updated** | 2026-09-13 |
 | **Governs** | NFR-P-01 … NFR-P-14 |
 
 ---
@@ -60,12 +60,12 @@ Stages executed strictly in sequence:
 | # | Stage | Budget | Cumulative | Confidence |
 |---|---|---|---|---|
 | 1 | VAD silence confirmation | 250 ms | 250 | **[ASSUMED]** — tunable |
-| 2 | Semantic turn detection | 150 ms | 400 | **[SOURCED]** |
-| 3 | STT finalisation | 250 ms | 650 | **[SOURCED]** |
+| 2 | Semantic turn detection | 150 ms | 400 | **[VERIFIED component]** — 20.6 ms best, but BM-03 pipeline failed frame-drop gate |
+| 3 | STT finalisation | 250 ms | 650 | **[UNMET in BM-03]** — subprocess mitigation required |
 | 4 | Prompt assembly | 10 ms | 660 | **[ESTIMATED]** |
-| 5 | LLM TTFT (warm prefix) | 400 ms | 1,060 | **[ASSUMED]** — BM-02 |
+| 5 | LLM TTFT (warm prefix) | 400 ms | 1,060 | **[VERIFIED]** — 320.9 ms median, BM-02 |
 | 6 | Segment first unit | 30 ms | 1,090 | **[ESTIMATED]** |
-| 7 | TTS first byte | 150 ms | 1,240 | **[SOURCED]** |
+| 7 | TTS first byte | 150 ms | 1,240 | **[UNMET in BM-03]** — 652.2 ms best for short unit |
 | 8 | Output buffer | 100 ms | **1,340** | Design choice |
 
 **1,340 ms — over budget by 140 ms.** Three ways to close it follow.
@@ -74,8 +74,8 @@ Stages executed strictly in sequence:
 
 ## 4. Optimisation 1 — overlap turn detection with STT
 
-Stages 2 and 3 do not depend on each other. The turn detector reads the *partial*
-transcript, which STT has already produced; finalisation refines it.
+Stages 2 and 3 do not depend on each other. Smart Turn reads an immutable raw
+audio snapshot while final STT reads the complete utterance snapshot.
 
 ```mermaid
 gantt
@@ -95,9 +95,9 @@ Run concurrently, the pair costs `max(150, 250) = 250 ms` rather than 400 ms.
 **Saving: 150 ms → 1,190 ms.**
 
 Requires speculative finalisation: begin finalising as soon as silence is
-detected, discard if the turn detector says "keep listening". Wasted CPU on
-false starts, but the CPU is idle anyway — this is precisely the free capacity
-that [ADR-0004](adr/0004-cpu-placement-for-stt-and-tts.md) identifies.
+detected and discard if the turn detector says "keep listening". BM-03 shows
+that this concurrency must use the subprocess isolation in amended ADR-0009;
+thread-based overlap starved the capture schedule.
 
 ---
 
@@ -113,16 +113,18 @@ collapses to near-pure decode latency.
 
 | | TTFT |
 |---|---|
-| Cold prefill | ~400 ms |
-| Warm (speculative) | ~120 ms **[ESTIMATED]** |
+| Equivalent uncached request | 1,189.3 ms **[VERIFIED, BM-02 probe]** |
+| Immediate request after zero-token prefill | 192.3 ms **[VERIFIED, BM-02 probe]** |
 
-**Saving: up to 280 ms → ~910 ms.**
+**Observed TTFT saving: 997.0 ms in the isolated BM-02 probe.** The prefill itself
+took 1,140.2 ms and must run speculatively in the background; it is not removed
+work.
 
 **Cost and risk.** Wasted GPU work when the user resumes speaking. More
 importantly this is **the optimisation most dependent on prefix caching working
-correctly on a hybrid DeltaNet architecture** — which is unverified
-([OQ-03](../06-governance/05-open-questions.md), BM-02). Treat it as a Phase 3
-optimisation, not a Phase 1 assumption.
+correctly on a hybrid DeltaNet architecture**. BM-02 verified it for the pinned
+model/runtime and closed OQ-03. Treat it as a Phase 3 optimisation and repeat the
+benchmark after either dependency changes.
 
 ---
 

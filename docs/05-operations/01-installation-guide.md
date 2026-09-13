@@ -162,7 +162,7 @@ python scripts/fetch_models.py
 | Parakeet TDT 0.6B v3 (ONNX) | ~650 MB |
 | Kokoro-82M (ONNX) | ~310 MB |
 | Silero VAD | ~2 MB |
-| Smart Turn v2 | ~500 MB |
+| Smart Turn v3.2 CPU ONNX | 8.7 MB |
 
 **This is the last step that needs the internet.** Everything afterwards runs
 fully offline.

@@ -37,10 +37,11 @@ Processing time ÷ audio duration. RTF 0.3 means 3 s of audio takes 0.9 s. **RTF
 must be < 1.0** for any streaming stage, or its queue grows without bound.
 
 **Semantic turn detection**
-Deciding whether a speaker has finished based on the *linguistic content* of
-their partial transcript rather than silence duration. "…and the problem is"
-signals incompleteness regardless of how long the pause runs. Distinguished in
-this project from VAD, which is purely acoustic.
+Deciding whether a speaker has finished from semantic patterns encoded in their
+speech rather than silence duration alone. Smart Turn v3.2 consumes the last
+eight seconds of raw 16 kHz audio; it does not consume a transcript. "…and the
+problem is" can therefore signal incompleteness even during silence.
+Distinguished from VAD, which only decides whether speech is acoustically present.
 [ADR-0007](../02-architecture/adr/0007-two-layer-turn-detection.md).
 
 **STT / ASR**

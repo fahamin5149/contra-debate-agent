@@ -75,7 +75,7 @@ sequenceDiagram
     V-->>SM: SPEECH_START → state = LISTENING
     U->>AI: pause
     V-->>T: SILENCE_SUSTAINED (250 ms)
-    S-->>T: partial transcript
+    S-->>T: immutable 16 kHz audio snapshot
     T->>T: evaluate(partial, silence_ms)
 
     alt incomplete — user is thinking

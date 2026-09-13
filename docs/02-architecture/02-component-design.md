@@ -151,7 +151,7 @@ to evaluate. Widening this component's remit is the classic voice-agent mistake.
 
 ```python
 class TurnDetector(Protocol):
-    def evaluate(self, partial: str, silence_ms: int) -> TurnDecision: ...
+    async def evaluate(self, snapshot: UtteranceSnapshot) -> EndpointResult: ...
         # TurnDecision(commit: bool, confidence: float, wait_more_ms: int)
 ```
 
