@@ -126,7 +126,8 @@ Fetches to `models/`:
 | Model | Source | Size |
 |---|---|---|
 | Parakeet TDT 0.6B v3 ONNX | `istupakov/parakeet-tdt-0.6b-v3-onnx` | ~650 MB |
-| Kokoro-82M ONNX | `onnx-community/Kokoro-82M-v1.0-ONNX` | ~310 MB |
+| Piper `en_US-lessac-medium` | `rhasspy/piper-voices` | ~64 MB |
+| Kokoro-82M ONNX (optional) | `onnx-community/Kokoro-82M-v1.0-ONNX` | ~310 MB |
 | Silero VAD | bundled | ~2 MB |
 | Smart Turn v3.2 (ONNX, Phase 2) | model file only | ~50 MB |
 

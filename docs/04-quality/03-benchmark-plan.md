@@ -158,8 +158,11 @@ then the full request, and measure the TTFT difference.
 ## BM-03 — CPU speech performance under load {#bm-03}
 
 ### Question
-Do Parakeet and Kokoro meet their RTF targets on this CPU **while the GPU is
-generating**?
+Do Parakeet and the selected TTS meet their RTF targets on this CPU **while the
+GPU is generating**?
+
+**Outcome 2026-09-13:** Kokoro failed the short-unit gate; the prescribed Piper
+fallback passed with the process/affinity/timer configuration in ADR-0015.
 
 ### Why it matters
 [ADR-0004](../02-architecture/adr/0004-cpu-placement-for-stt-and-tts.md) puts all
@@ -174,9 +177,8 @@ worthless.
 Three sub-questions:
 
 1. **RTF under contention** — NFR-P-21 (STT < 0.3), NFR-P-22 (TTS < 0.5)
-2. **Kokoro short-text penalty** — **[SOURCED]** ONNX is slower than PyTorch on
-   tiny inputs (RTF 0.72 vs 0.49), and we deliberately emit short units
-   ([ADR-0006](../02-architecture/adr/0006-kokoro-for-tts.md))
+2. **Short-text latency** — measure the default engine on the exact short units
+   the response pipeline emits ([ADR-0015](../02-architecture/adr/0015-piper-as-primary-tts.md))
 3. **GIL behaviour** — does ONNX Runtime genuinely release the GIL, so
    `asyncio.to_thread` parallelises?
    ([ADR-0009](../02-architecture/adr/0009-python-as-orchestration-language.md))

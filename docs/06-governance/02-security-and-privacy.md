@@ -193,7 +193,9 @@ All models run locally after download. None calls home at runtime.
 |---|---|---|
 | Qwen3.5-9B | Apache 2.0 | None |
 | Parakeet TDT (ONNX) | Community export | None |
-| Kokoro-82M | Apache 2.0 | None |
+| Piper runtime | GPL-3.0 | Distribution review required; include source/license obligations |
+| `en_US-lessac-medium` voice | Separate voice-model license | Pin and reproduce its model card in notices |
+| Kokoro-82M (optional) | Apache 2.0 | None |
 | Silero VAD | MIT | None |
 | llama.cpp | MIT | None |
 | aiortc | BSD | None |

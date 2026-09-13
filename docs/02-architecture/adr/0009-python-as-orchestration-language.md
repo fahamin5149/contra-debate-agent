@@ -2,7 +2,7 @@
 
 | Status | Date | Confidence | Reversibility |
 |---|---|---|---|
-| Accepted — amended after BM-03 | 2026-08-30; amended 2026-09-12 | High | **Hard** |
+| Accepted — amended after BM-03 | 2026-08-30; amended 2026-09-13 | High | **Hard** |
 
 ## Context
 
@@ -38,6 +38,7 @@ Python binding:
 | Hand-written asyncio pipeline (ADR-0013) | Python |
 | `onnx-asr` (Parakeet) | Python |
 | `kokoro-onnx` | Python |
+| `piper-tts` | Python / native wheel |
 | Silero VAD | Python (PyTorch/ONNX) |
 | Smart Turn v3.2 | ONNX Runtime from Python |
 | `openai` SDK | Python (among others) |
@@ -117,16 +118,18 @@ for maximum safety; if a dependency requires 3.12+, moving is trivial.
   [ADR-0004](0004-cpu-placement-for-stt-and-tts.md) puts on the CPU — must
   release it or the audio event loop stalls.
 
-  **[VERIFIED by BM-03, 2026-09-12]** Thread-based isolation did not protect the
-  20 ms capture schedule under concurrent GPU generation: the best tested
-  configuration missed 170 frame deadlines, despite meeting the long-form STT,
-  40+-character TTS, and Smart Turn throughput targets. The earlier assumption
-  is rejected. See [BM-03](../../../benchmarks/results/BM-03-cpu-speech-rtf.md).
+  **[VERIFIED by corrected BM-03, 2026-09-13]** A four-thread in-process trial
+  missed four fixed 20 ms service windows under concurrent GPU generation and
+  cannot provide bounded cancellation of a native call. The original drifting
+  ticker's much larger counts were invalid and are not evidence about the GIL.
+  See [BM-03](../../../benchmarks/results/BM-03-cpu-speech-rtf.md).
 
   *Mitigation:* each CPU model is owned by a spawned subprocess with a bounded
   request channel. This contains GIL/native-pool scheduling, permits forceful
   recovery from a hung native call, and keeps the audio loop free of model
-  objects. BM-03 must pass on this exact design before M2 application work.
+  objects. BM-03 passed on this design with four inference threads, two logical
+  CPUs reserved for orchestration, a scoped 1 ms Windows timer request, and
+  Piper as selected by ADR-0015.
 
 - **Garbage-collection pauses** add latency jitter, inflating P95
   ([Latency Budget §9](../07-latency-budget.md)).
@@ -140,9 +143,9 @@ for maximum safety; if a dependency requires 3.12+, moving is trivial.
 
 ## Revisit when
 
-- A repeat of BM-03 still shows audio dropouts with subprocess isolation. Next
-  mitigations: set worker affinity/process priority and bound ONNX threads; in
-  the extreme, move the capture clock to a native helper.
+- A repeat of BM-03 shows missed service windows with the selected subprocess,
+  affinity, thread-count, and timer configuration. Next mitigation: move the
+  capture clock to a native helper.
 - Distribution to non-technical users becomes a goal — packaging Python for
   Windows is genuinely unpleasant and might justify reconsidering.
 - A credible Rust or Go voice-agent framework with these model integrations

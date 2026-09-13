@@ -58,7 +58,7 @@ graph TB
         VAD[Silero VAD]
         Turn[Smart Turn v3.2]
         STT[Parakeet TDT<br/>ONNX]
-        TTS[Kokoro-82M<br/>ONNX]
+        TTS[Piper<br/>ONNX]
         Debate[Debate engine<br/>prompt + state]
     end
 
@@ -253,7 +253,7 @@ orchestrator (FR-51).
 | Orchestration | **Hand-written asyncio loop** | [0013](adr/0013-hand-written-asyncio-pipeline-over-pipecat.md) — supersedes [0003](adr/0003-pipecat-as-orchestration-framework.md) |
 | Compute placement | LLM on GPU, all else CPU | [0004](adr/0004-cpu-placement-for-stt-and-tts.md) |
 | STT | Parakeet TDT 0.6B v3 (ONNX) | [0005](adr/0005-parakeet-tdt-for-stt.md) |
-| TTS | Kokoro-82M (ONNX) | [0006](adr/0006-kokoro-for-tts.md) |
+| TTS | Piper 1.8.0 (ONNX); Kokoro optional | [0015](adr/0015-piper-as-primary-tts.md) — supersedes [0006](adr/0006-kokoro-for-tts.md) |
 | Turn detection | Silero VAD + Smart Turn v3.2 | [0007](adr/0007-two-layer-turn-detection.md) |
 | Audio transport | **Browser/WebRTC with AEC** | [0012](adr/0012-browser-webrtc-transport-with-aec.md) — supersedes [0008](adr/0008-headphones-first-audio-transport.md) |
 | Language | Python 3.11 | [0009](adr/0009-python-as-orchestration-language.md) |
@@ -284,7 +284,7 @@ Stated so the boundaries are legible:
 | [RISK-02](../06-governance/01-risk-register.md) | LLM throughput below 20 tok/s | NFR-P-01 unreachable → drop to 4B |
 | [RISK-03](../06-governance/01-risk-register.md) | Prefix caching ineffective on hybrid architecture | Every turn re-prefills; TTFT balloons |
 | [RISK-05](../06-governance/01-risk-register.md) | Turn detection feels wrong | Product feels broken despite passing tests |
-| [RISK-06](../06-governance/01-risk-register.md) | CPU speech models miss RTF under GPU load | Queues grow unbounded |
+| ~~[RISK-06](../06-governance/01-risk-register.md)~~ | ~~CPU speech models miss RTF under GPU load~~ | Retired by BM-03 with Piper/subprocess isolation |
 | [RISK-12](../06-governance/01-risk-register.md) | AEC fails during double-talk (speakers) | Agent uninterruptible, or interrupts itself |
 
 Every one is measured in [Phase 0](../07-planning/01-roadmap.md) before

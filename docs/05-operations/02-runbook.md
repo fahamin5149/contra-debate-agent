@@ -38,7 +38,7 @@ Contra v0.x.x
 ✓ Audio in:  Headset Microphone (Jabra Evolve 65)
 ✓ Audio out: Headset Earphone (Jabra Evolve 65)
 ✓ LLM server healthy (127.0.0.1:8080), context 16384
-✓ Speech models loaded (Parakeet, Kokoro, Silero, SmartTurn)
+✓ Speech models loaded (Parakeet, Piper, Silero, SmartTurn)
 ✓ UI at http://127.0.0.1:8000
   Config: default.yaml + user.yaml
   Prompt: debate-v3
@@ -140,7 +140,7 @@ Layer 1 analysis queries are in
 | Symptom | Likely | Action |
 |---|---|---|
 | "I've lost my train of thought" | LLM died | Auto-restart in progress; wait 60 s |
-| Robotic voice | Kokoro failed, Piper active | Restart at session end |
+| Higher-latency quality voice | Optional Kokoro mode active | Return to Piper at session end |
 | Text lagging speech | UI WebSocket dropped | Refresh the browser |
 | Worse transcription | Parakeet failed, Whisper active | Restart at session end |
 

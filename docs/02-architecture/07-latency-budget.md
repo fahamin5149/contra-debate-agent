@@ -60,12 +60,12 @@ Stages executed strictly in sequence:
 | # | Stage | Budget | Cumulative | Confidence |
 |---|---|---|---|---|
 | 1 | VAD silence confirmation | 250 ms | 250 | **[ASSUMED]** — tunable |
-| 2 | Semantic turn detection | 150 ms | 400 | **[VERIFIED component]** — 20.6 ms best, but BM-03 pipeline failed frame-drop gate |
-| 3 | STT finalisation | 250 ms | 650 | **[UNMET in BM-03]** — subprocess mitigation required |
+| 2 | Semantic turn detection | 150 ms | 400 | **[VERIFIED component]** — 15.0 ms, BM-03 selected configuration |
+| 3 | STT finalisation | 250 ms | 650 | **[UNMET component target]** — 317.6 ms for 5 s speech; RTF 0.064 passes throughput gate |
 | 4 | Prompt assembly | 10 ms | 660 | **[ESTIMATED]** |
 | 5 | LLM TTFT (warm prefix) | 400 ms | 1,060 | **[VERIFIED]** — 320.9 ms median, BM-02 |
 | 6 | Segment first unit | 30 ms | 1,090 | **[ESTIMATED]** |
-| 7 | TTS first byte | 150 ms | 1,240 | **[UNMET in BM-03]** — 652.2 ms best for short unit |
+| 7 | TTS first byte | 150 ms | 1,240 | **[VERIFIED upper bound]** — Piper returned the full 15-character unit in 57.5 ms, BM-03 |
 | 8 | Output buffer | 100 ms | **1,340** | Design choice |
 
 **1,340 ms — over budget by 140 ms.** Three ways to close it follow.
@@ -95,9 +95,9 @@ Run concurrently, the pair costs `max(150, 250) = 250 ms` rather than 400 ms.
 **Saving: 150 ms → 1,190 ms.**
 
 Requires speculative finalisation: begin finalising as soon as silence is
-detected and discard if the turn detector says "keep listening". BM-03 shows
-that this concurrency must use the subprocess isolation in amended ADR-0009;
-thread-based overlap starved the capture schedule.
+detected and discard if the turn detector says "keep listening". BM-03 passed
+with the subprocess, affinity, thread-count, and timer configuration in
+ADR-0009; the original thread-run drop count was invalidated by a ticker bug.
 
 ---
 
@@ -263,9 +263,9 @@ Ranked by damage if the estimate is wrong:
 | 5 | Turn detection ≤ 150 ms | Direct latency add | BM-03 |
 | 6 | **WebRTC round trip ≤ 40 ms** | Both budgets tighten; barge-in may need client-side VAD | BM-05 |
 
-**Nothing in this document is measured.** Every number is sourced from
-third-party benchmarks or derived arithmetically. The budget is internally
-consistent, which is not the same as being true.
+BM-01, BM-02, and BM-03 now verify the marked component values. End-to-end turn
+latency, WebRTC transport, browser playback, and acoustic interruption remain
+unmeasured; component results do not make the overall budget verified.
 
 Phase 0 of the [Roadmap](../07-planning/01-roadmap.md) exists to replace these
 estimates with measurements before any pipeline code is written. If BM-01
@@ -285,7 +285,7 @@ If the measured budget cannot be met:
 | Reduce context 16K → 8K | Faster prefill | ~50 exchanges instead of ~100 |
 | Shorten `max_tokens` 220 → 150 | Shorter turns | Less developed arguments |
 | Filler acknowledgement (FR-15) | Hides ~600 ms | Perceptual only, not real |
-| Piper instead of Kokoro | Lower TTS latency | Noticeably more robotic |
+| ~~Piper instead of Kokoro~~ | **Selected by ADR-0015; 57.5 ms short-unit full synthesis** | Noticeably more robotic **[ASSUMED]** |
 | Cut silence window to 150 ms | 100 ms | More false cuts — **not recommended** |
 
 **FR-15 (the filler token) deserves comment.** Emitting "Hm—" or "Right," while

@@ -17,7 +17,7 @@ constraint that justified it has gone.
 | [0003](0003-pipecat-as-orchestration-framework.md) | ~~Pipecat for orchestration~~ | **Superseded by 0013** | — | — |
 | [0004](0004-cpu-placement-for-stt-and-tts.md) | LLM on GPU; everything else on CPU | Accepted | High | Easy |
 | [0005](0005-parakeet-tdt-for-stt.md) | Parakeet TDT 0.6B v3 for STT | Accepted | Medium | Easy |
-| [0006](0006-kokoro-for-tts.md) | Kokoro-82M for TTS | Accepted | Medium | Easy |
+| [0006](0006-kokoro-for-tts.md) | ~~Kokoro-82M for primary TTS~~ | **Superseded by 0015** | — | — |
 | [0007](0007-two-layer-turn-detection.md) | Two-layer turn detection (VAD + semantic) | Accepted | High | Moderate |
 | [0008](0008-headphones-first-audio-transport.md) | ~~Headphones-first audio; AEC deferred~~ | **Superseded by 0012** | — | — |
 | [0009](0009-python-as-orchestration-language.md) | Python 3.11 for orchestration | Accepted | High | Hard |
@@ -26,6 +26,7 @@ constraint that justified it has gone.
 | [0012](0012-browser-webrtc-transport-with-aec.md) | Browser/WebRTC transport with AEC | Accepted | Medium-high | Moderate |
 | [0013](0013-hand-written-asyncio-pipeline-over-pipecat.md) | Hand-written asyncio pipeline, not Pipecat | Accepted | **High** — measured | Easy |
 | [0014](0014-browser-acknowledged-playback.md) | Browser-acknowledged playback and sample-delimited PTT capture | **Proposed — 2026-09-06** | Medium; acoustic/output evidence pending | Moderate |
+| [0015](0015-piper-as-primary-tts.md) | Piper as primary TTS; Kokoro optional | Accepted | High — measured | Easy |
 
 ## Reading the columns
 

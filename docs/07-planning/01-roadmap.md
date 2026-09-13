@@ -36,6 +36,10 @@ Roughly **5 weeks of focused work** to v1.0. Part-time, realistically longer.
 
 **2 days. No application code is written.**
 
+**Execution status 2026-09-13:** BM-01 through BM-04 are recorded. BM-03 passed
+after selecting Piper and spawned workers (ADR-0015). BM-05 remains unrun and
+continues to block Phase 2.
+
 | Benchmark | Answers |
 |---|---|
 | **BM-01** | Does the 9B hit ≥ 25 tok/s on *this* laptop GPU? |
@@ -72,7 +76,7 @@ and resource budgets updated with measured values.
 | Parakeet STT | Transcript UI (audio only for now) |
 | `llama-server` client with streaming | Persistence |
 | Sentence segmenter | Debate persona (generic prompt) |
-| Kokoro TTS | Error recovery |
+| Piper TTS (Kokoro optional) | Error recovery |
 
 > **The browser transport moved here from Phase 4** when
 > [OQ-01](../06-governance/05-open-questions.md) resolved to speakers. It cannot
@@ -233,7 +237,7 @@ and reading surface, valuable but not load-bearing.
 |---|---|
 | BM-01 fails | Switch to Qwen3.5-4B. Little schedule impact; quality cost. |
 | BM-02 fails | Latency budget re-derived without speculative prefill. Phase 3 lengthens. |
-| BM-03 GIL-1 fails | **Serious.** Subprocess isolation for inference, or reconsider Python. Phase 1 lengthens materially. |
+| ~~BM-03 GIL-1 fails~~ | ✅ **Resolved.** Corrected BM-03 passed with spawned workers, Piper, bounded threads, affinity, and scoped timer resolution. |
 | ~~OQ-01 → speakers~~ | ✅ **Happened.** Browser transport moved into Phase 1. +3 days, already absorbed below. |
 | **BM-05 double-talk fails** | Push-to-talk becomes the default; barge-in documented as requiring headphones. Product change, not a delay. |
 | ~~Pipecat cannot express FR-13~~ | ✅ **Happened.** Probe failed; ADR-0013 supersedes ADR-0003. Zero rework — Phase 1 had not integrated it. |

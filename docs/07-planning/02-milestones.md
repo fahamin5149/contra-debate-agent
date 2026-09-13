@@ -15,6 +15,9 @@ the work feels finished; it is done when the criteria are met
 
 **2 days · Phase 0**
 
+**Status 2026-09-13:** BM-01 through BM-04 recorded; BM-03 passed with the
+ADR-0015 design change. BM-05 remains the open M0 gate.
+
 ### Tasks
 | | Est. |
 |---|---|
@@ -66,7 +69,7 @@ the work feels finished; it is done when the criteria are met
 | Parakeet STT behind `SttStage` | 5 h |
 | `LlmClient` with SSE streaming and cancellation | 5 h |
 | `SentenceSegmenter` with the min-unit rule | 3 h |
-| Kokoro TTS behind `TtsStage` | 4 h |
+| Piper TTS behind `TtsStage` (ADR-0015) | 4 h |
 | `ConversationState` **with FR-13 structure** | 6 h |
 | ~~Pipecat assembly~~; **probe FR-13 expressibility** — probe FAILED, no assembly | 6 h |
 | Unit tests for core components | 6 h |

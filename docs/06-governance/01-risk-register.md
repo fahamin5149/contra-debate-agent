@@ -108,7 +108,7 @@ model/runtime and must be reopened after either changes.
 ### RISK-04 — Windows dependency hell
 | L | I | Score |
 |---|---|---|
-| 5 | 3 | **15** ⚠ **MATERIALIZED in BM-03** |
+| 3 | 3 | **9** |
 
 **Description.** **[VERIFIED]** the dev machine runs Python 3.13. ML wheels lag
 Python releases; on Windows a missing wheel means a source build requiring MSVC
@@ -153,7 +153,7 @@ glitch.
 ### RISK-06 — CPU speech models miss RTF under concurrent load
 | L | I | Score |
 |---|---|---|
-| 3 | 3 | **9** |
+| — | — | **RETIRED 2026-09-13** |
 
 **Description.** [ADR-0004](../02-architecture/adr/0004-cpu-placement-for-stt-and-tts.md)
 puts all speech models on the CPU based on **[SOURCED]** benchmarks — **taken on
@@ -164,12 +164,14 @@ falls progressively further behind for the entire session.
 
 **Mitigation**
 - [BM-03](../../benchmarks/results/BM-03-cpu-speech-rtf.md) measured **under
-  concurrent GPU load** and failed the frame-drop and short-TTS gates
-- Amended ADR-0009 requires model-owning spawned subprocesses and a repeat BM-03
-- Fallbacks: faster-whisper small.en, Piper
-- Process affinity and ONNX thread count remain tunable on the hybrid CPU
+  concurrent GPU load** and passed with bounded spawned workers, four inference
+  threads, two reserved logical CPUs, and a scoped 1 ms Windows timer request
+- [ADR-0015](../02-architecture/adr/0015-piper-as-primary-tts.md) replaces
+  Kokoro with Piper after the former failed the short-unit latency gate
+- Reopen this risk if the model, voice, runtime, affinity, or target CPU changes
 
-**Retires when:** BM-03 confirms STT RTF < 0.3 and TTS RTF < 0.5 under load.
+**Retired:** BM-03 confirmed STT RTF < 0.3, TTS RTF < 0.5, short-unit synthesis
+<150 ms, and zero missed service windows under load.
 
 ---
 
@@ -350,7 +352,7 @@ IT-02 barge-in passes with speakers active.
 | **RISK-12** | **AEC fails during double-talk** | **12** | **Open — BM-05** (new, from OQ-01) |
 | ~~RISK-01~~ | ~~llama.cpp support recent~~ | — | ✅ **RETIRED** — BM-01, model loads and generates |
 | RISK-04 | Windows dependency hell | 9 | Mitigated — Python 3.11 pin |
-| **RISK-06** | CPU speech RTF under load | **15** | **Materialized — subprocess mitigation required** |
+| ~~RISK-06~~ | ~~CPU speech RTF under load~~ | — | ✅ **RETIRED** — BM-03 with Piper/subprocess isolation |
 | RISK-10 | Scope creep | 9 | Mitigated — documented scope |
 | RISK-11 | Barge-in truncation wrong | 9 | Mitigated — invariant + tests |
 | RISK-07 | Thermal throttling | 6 | Open — BM-01 thermal run |

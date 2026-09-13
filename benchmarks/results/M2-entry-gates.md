@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| **Date** | 2026-09-12 |
-| **Status** | **BLOCKED — BM-03 failed; BM-05 and M1 acoustic evidence remain** |
+| **Date** | 2026-09-13 |
+| **Status** | **BLOCKED — BM-05 and M1 acoustic evidence remain** |
 | **Branch** | `feat/phase-2-turn-detection-and-barge-in` |
 
 ## Baseline
@@ -25,7 +25,7 @@ M2. It must still be resolved before the final gate.
 |---|---|---|
 | BM-01 — LLM throughput | PASS, 33.1 tok/s median | Satisfied |
 | BM-02 — prefix cache | PASS, 3.36× cached advantage; 6.18× post-prefill TTFT speedup | Satisfied |
-| BM-03 — CPU speech under load | **FAIL** | Blocking; subprocess mitigation and repeat required |
+| BM-03 — CPU speech under load | **PASS with design change** | Satisfied by spawned workers + Piper; ADR-0015 |
 | BM-04 — VRAM | PASS | Satisfied |
 | BM-05 — browser AEC/double-talk | Not run | Blocking; requires target speakers, microphone, room, and human speech |
 
@@ -46,10 +46,8 @@ on the final browser rendering graph.
 
 ## Required response
 
-1. Amend ADR-0009 and the Phase 2 worker design for subprocess-isolated CPU
-   inference, then repeat BM-03.
-2. Run BM-05 using `benchmarks/bm05_echo_cancellation.py` to validate the exact
+1. Run BM-05 using `benchmarks/bm05_echo_cancellation.py` to validate the exact
    20-trial acoustic record.
-3. Record the remaining real M1 latency and acoustic evidence.
-4. Do not begin Tasks 2–18 until these gates are satisfied, as required by the
+2. Record the remaining real M1 latency and acoustic evidence.
+3. Do not begin Tasks 2–18 until these gates are satisfied, as required by the
    benchmark plan and this repository's root instructions.

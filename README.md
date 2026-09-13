@@ -49,7 +49,7 @@ Stop-Process -Id 17512,21816
 |---|---|
 | **LLM** | Qwen3.5-9B (UD-Q4_K_XL, 5.56 GiB) via llama.cpp — **GPU** |
 | **STT** | Parakeet TDT 0.6B v3 (ONNX) — **CPU** |
-| **TTS** | Kokoro-82M (ONNX) — **CPU** |
+| **TTS** | Piper 1.8.0 (ONNX) — **CPU**; Kokoro optional |
 | **Turn detection** | Silero VAD + Smart Turn v3.2 — **CPU** |
 | **Orchestration** | Python 3.11, hand-written asyncio loop (no framework) |
 | **Audio** | Browser/WebRTC with echo cancellation — speakers supported |
@@ -79,11 +79,12 @@ Why this warning is prominent rather than buried:
 
 ## Next step
 
-**Phase 0 — [run the benchmarks](docs/04-quality/03-benchmark-plan.md).**
+**Finish the remaining entry evidence before Phase 2 application work.**
 
-Every performance figure in the design is borrowed from someone else's hardware.
-Five measurements — roughly two days — retire five of the top seven risks and
-decide whether the design is viable before a line of application code is written.
+BM-01 through BM-04 are recorded; BM-03 selected Piper and spawned inference
+workers. [BM-05](docs/04-quality/03-benchmark-plan.md#bm-05) still requires the
+real laptop speakers, microphone, room, and human double-talk, and M1's real
+spoken-exchange record remains partial.
 
 ---
 

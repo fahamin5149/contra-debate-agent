@@ -12,9 +12,9 @@
 
 **Goal:** Complete natural turn detection and interruption on the target Windows laptop: preserve speech onset, stop audible output, abort LLM generation, commit only acknowledged spoken history, and provide a complete push-to-talk bypass.
 
-**Architecture:** Keep [ADR-0013](../../02-architecture/adr/0013-hand-written-asyncio-pipeline-over-pipecat.md)'s hand-written asyncio orchestration, with one state owner and independently running input and response tasks. After BM-03 failed on 2026-09-12, STT, TTS, and Smart Turn are owned by spawned subprocess workers rather than `asyncio.to_thread`; see amended ADR-0009 and Task 6. Smart Turn v3.2 receives immutable audio snapshots on CPU. Proposed ADR-0014 makes browser output acknowledgements authoritative for FR-13; its transport refinement has a separate acceptance gate.
+**Architecture:** Keep [ADR-0013](../../02-architecture/adr/0013-hand-written-asyncio-pipeline-over-pipecat.md)'s hand-written asyncio orchestration, with one state owner and independently running input and response tasks. Corrected BM-03 passed with spawned model owners, four inference threads, two reserved logical CPUs, a scoped 1 ms Windows timer request, and Piper as selected by ADR-0015; see amended ADR-0009 and Task 6. Smart Turn v3.2 receives immutable audio snapshots on CPU. Proposed ADR-0014 makes browser output acknowledgements authoritative for FR-13; its transport refinement has a separate acceptance gate.
 
-**Tech Stack:** Python 3.11, asyncio, existing FastAPI/httpx/aiortc/PyAV, CPU ONNX Runtime, Parakeet, Kokoro, Silero, Smart Turn v3.2, vanilla browser JavaScript and AudioWorklet. Node's built-in test runner for pure JavaScript; local Chromium/Playwright only for browser integration tests. Pin dependencies at execution; install-time downloads must never become runtime downloads.
+**Tech Stack:** Python 3.11, asyncio, existing FastAPI/httpx/aiortc/PyAV, CPU ONNX Runtime, Parakeet, Piper 1.8.0 (`en_US-lessac-medium`), Silero, Smart Turn v3.2, vanilla browser JavaScript and AudioWorklet. Kokoro remains optional, not the compliant default. Node's built-in test runner handles pure JavaScript; local Chromium/Playwright is only for browser integration tests. Pin dependencies at execution; install-time downloads must never become runtime downloads.
 
 **Spec:** [PRD](../../00-product/02-product-requirements.md), [NFRs](../../00-product/05-non-functional-requirements.md), [User Stories](../../00-product/04-user-stories.md), [ADR-0007](../../02-architecture/adr/0007-two-layer-turn-detection.md), [ADR-0012](../../02-architecture/adr/0012-browser-webrtc-transport-with-aec.md), [Internal API](../../02-architecture/05-internal-api-spec.md), [State invariants](../../02-architecture/04-data-flow-and-state.md), [Test Strategy](../../04-quality/01-test-strategy.md), [Benchmark Plan](../../04-quality/03-benchmark-plan.md), [Definition of Done](../../04-quality/05-definition-of-done.md).
 
@@ -58,7 +58,7 @@ The following quoted constraints apply to every task. New implementation choices
 | FR-13 contiguous spoken prefix and I-3/I-4/I-7/I-8 tests | Full live transcript UI and diagnostics dashboard — M4 |
 | 300 ms pre-buffer; bounded capture and inference queues | Complete F-catalogue recovery, supervisor, installer — M4 |
 | PTT mode, down/up controls, disconnect cleanup | Voice-command session setup/end semantics — later lifecycle work |
-| Necessary state/error UI and stage metrics for M2 verification | Piper/Whisper adapters unless a measured decision selects them |
+| Necessary state/error UI and stage metrics for M2 verification; measured Piper adapter | Whisper or alternate TTS adapters unless a measured decision selects them |
 | Real argumentative fixtures, tuning, IT-02, M2 evidence | v1 release certification; M2 is not a v1 release |
 
 “Complete Phase 2” includes failure containment for its own workers and controls.
@@ -75,7 +75,7 @@ All rows are **[VERIFIED by source inspection on 2026-09-06]**, not runtime find
 | [`PlaybackQueue`](../../../src/contra/audio/webrtc_transport.py) has unbounded pending chunks and credits sender consumption | Tasks 7–9 replace that accounting and bound media credit. |
 | [`ConversationState`](../../../src/contra/debate/conversation.py) calls dispatched text “generated”, commits before browser drain, and can append consecutive user roles | Task 10 separates records and constructs valid model history. |
 | [`SileroVad`](../../../src/contra/detect/silero_vad.py) does not use `min_speech_ms` | Task 3 adds onset confirmation without resetting recurrent state on every pause. |
-| [`KokoroTts`](../../../src/contra/speech/kokoro_tts.py) resets a shared cancellation boolean for each synthesis | Task 6 uses generation IDs and owned workers; an old thread cannot become current again. |
+| [`KokoroTts`](../../../src/contra/speech/kokoro_tts.py) resets a shared cancellation boolean and failed NFR-P-13 | Task 6 replaces the default with a generation-safe Piper worker; Kokoro remains optional. |
 | [`LlmClient`](../../../src/contra/debate/llm_client.py) has no response object while connecting | Task 5 covers cancellation before response headers as well as during SSE. |
 | [`app.py`](../../../src/contra/app.py) creates untracked session tasks on every offer | Task 13 adds exclusive session ownership and shutdown. |
 | [`ConfigLoader`](../../../src/contra/config/loader.py) ignores unknown fields and splits environment names at the first underscore | Task 2 supports `turn_detection` and nested fields without silently ignoring tuning. |
@@ -131,7 +131,7 @@ Paths below are repository-relative. “Modify” includes preserving current us
 | Create | `src/contra/detect/smart_turn.py`, `src/contra/detect/whisper_features.py`, `src/contra/detect/heuristic_turn.py` | Model adapter, reviewed frontend, explicit fallback — 4, 12 |
 | Create | `src/contra/runtime/inference_process.py`, `src/contra/runtime/__init__.py` | One spawned, model-owning CPU process per model — 6 |
 | Create / move | `src/contra/llm/client.py`, `src/contra/llm/interfaces.py`, `src/contra/llm/__init__.py` | Concrete HTTP outside debate core — 5 |
-| Modify | `src/contra/speech/interfaces.py`, `src/contra/speech/parakeet_stt.py`, `src/contra/speech/kokoro_tts.py` | Immutable request inputs and generation-safe adapters — 6 |
+| Create / modify | `src/contra/speech/piper_tts.py`, `src/contra/speech/interfaces.py`, `src/contra/speech/parakeet_stt.py`, `src/contra/speech/kokoro_tts.py` | Default Piper worker, immutable request inputs, optional generation-safe Kokoro — 6 |
 | Modify | `src/contra/audio/types.py`, `src/contra/audio/interfaces.py` | Generation/sample/receipt contracts — 7 |
 | Create | `src/contra/audio/playback_ledger.py`, `src/contra/audio/media_protocol.py` | Acknowledged prefix and wire framing — 7 |
 | Modify | `src/contra/audio/webrtc_transport.py` | Receive-only RTP plus output data/control channels — 9 |
@@ -643,7 +643,7 @@ diagnostics. Preserve request sampling/body behavior and malformed-SSE handling.
 
 Enforce the new boundary in `pyproject.toml`: ban `httpx` and `openai` imports
 from the core, allow `httpx` only in `src/contra/llm/client.py` and HTTP-specific
-tests. Keep `onnxruntime`, `aiortc`, `av`, `torch`, `onnx_asr`, `kokoro_onnx`,
+tests. Keep `onnxruntime`, `aiortc`, `av`, `torch`, `onnx_asr`, `piper`, `kokoro_onnx`,
 `sounddevice`, and `pipecat` banned in `debate/`. Add an AST-based boundary test
 for the core so a broad per-file TID251 exemption cannot silently disable all
 of its restrictions. Update every old `contra.debate.llm_client` import with
@@ -741,8 +741,9 @@ new one. Keep the original request ID until cleanup is complete.
 
 **Depends on:** 2, 4.
 
-**Files:** Create `runtime/inference_process.py`, `runtime/__init__.py`; modify
-`speech/interfaces.py`, `speech/parakeet_stt.py`, `speech/kokoro_tts.py`,
+**Files:** Create `runtime/inference_process.py`, `runtime/__init__.py`,
+`speech/piper_tts.py`; modify `speech/interfaces.py`, `speech/parakeet_stt.py`,
+`speech/kokoro_tts.py`,
 `detect/smart_turn.py`; tests `tests/unit/test_inference_worker.py`,
 `tests/unit/test_speech_cancellation.py` and
 `tests/integration/test_inference_process.py`.
@@ -757,8 +758,9 @@ the Windows `spawn` boundary.
 **[VERIFIED: Python API semantics]** Cancelling an await of `to_thread` does
 not provide a mechanism to stop arbitrary native inference already running.
 [Python asyncio reference](https://docs.python.org/3.11/library/asyncio-task.html#asyncio.to_thread).
-BM-03 proved that merely tracking the thread is insufficient: native thread
-pools still starved the capture schedule. This design stops delivery
+Corrected BM-03 retained subprocess ownership because merely cancelling an await
+cannot terminate obsolete native work; its selected configuration passed all
+benchmark gates. This design stops delivery
 immediately and gives the supervisor a bounded option to terminate and replace
 a stuck or obsolete worker process.
 
@@ -807,9 +809,9 @@ configured deadline, then terminates and joins the child. Unexpected child exit
 fails active/pending futures and may restart once within a bounded policy. No
 audio/transcript bytes are written to disk or logged.
 
-- [ ] Repeat BM-03 against these subprocess adapters. Do not advance until
-  dropped frames are zero and all throughput gates pass, or amend ADR-0009 again
-  with measured evidence and a new architecture.
+- [x] Repeat BM-03 against the subprocess architecture. The selected Piper,
+  four-thread, affinity-reserved, 1 ms timer configuration passed every BM-03
+  gate on 2026-09-13; ADR-0015 records the TTS change.
 
 - [ ] Replace Parakeet's mutable `feed/reset` buffer API with `transcribe(snapshot)`.
   Validate 16 kHz, convert immutable PCM in the owned worker, and return
@@ -817,10 +819,11 @@ audio/transcript bytes are written to disk or logged.
   uses the full utterance, not Smart Turn's eight-second crop. Preserve silence
   rejection; do not fabricate confidence 1.0 when the engine does not provide it.
 
-- [ ] Replace Kokoro's shared `_cancelled` boolean with per-generation fencing.
+- [ ] Implement Piper as the default and replace Kokoro's shared `_cancelled`
+  boolean with per-generation fencing for the optional quality mode.
   `cancel(generation)` marks it closed and cancels its result future; old
   completions never yield PCM. Use explicit CPU session configuration supported
-  by the pinned Kokoro version and assert provider selection in integration.
+  by the pinned engine versions and assert provider selection in integration.
   Do not create CUDA providers by default. Quantize PCM as in current code;
   validate actual rate equals `sample_rate`, length is even, and duration derives
   from samples. Keep one native synthesis unit at a time and the existing

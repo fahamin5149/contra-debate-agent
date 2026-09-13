@@ -225,7 +225,7 @@ The contract that makes FR-13 implementable. Small, and easy to get wrong.
 ```python
 @dataclass(frozen=True)
 class AudioChunk:
-    samples: bytes            # PCM16 mono @ 24 kHz (Kokoro native)
+    samples: bytes            # PCM16 mono @ transport rate after engine resampling
     text_span: tuple[int, int]  # [start, end) char offsets into the turn's
                                 # dispatched text — NOT into the sentence
     duration_ms: float

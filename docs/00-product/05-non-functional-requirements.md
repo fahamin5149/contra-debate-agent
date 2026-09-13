@@ -38,9 +38,9 @@ Derived from NFR-P-01. Full derivation in
 | ID | Stage | Budget |
 |---|---|---|
 | **NFR-P-10** | Semantic turn detection | ≤ 150 ms |
-| **NFR-P-11** | STT, final transcription of a committed turn | ≤ 250 ms |
+| **NFR-P-11** | STT, final transcription of a committed turn | ≤ 250 ms — **[UNMET]** 317.6 ms for 5 s speech (BM-03) |
 | **NFR-P-12** | LLM time-to-first-token (warm prefix) | ≤ 400 ms — **[VERIFIED]** 320.9 ms median, 332.6 ms at turn 20 (BM-02) |
-| **NFR-P-13** | TTS time-to-first-audio-byte | ≤ 150 ms |
+| **NFR-P-13** | TTS time-to-first-audio-byte | ≤ 150 ms — **[VERIFIED upper bound]** 57.5 ms for complete 15-character Piper unit (BM-03) |
 | **NFR-P-14** | Audio output buffer | ≤ 100 ms |
 | **NFR-P-15** | WebRTC transport, round trip | ≤ 60 ms (budgeted 40) |
 

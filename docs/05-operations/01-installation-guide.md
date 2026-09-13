@@ -160,7 +160,8 @@ python scripts/fetch_models.py
 | Model | Size |
 |---|---|
 | Parakeet TDT 0.6B v3 (ONNX) | ~650 MB |
-| Kokoro-82M (ONNX) | ~310 MB |
+| Piper `en_US-lessac-medium` (ONNX + config) | ~64 MB |
+| Kokoro-82M (optional quality mode) | ~310 MB |
 | Silero VAD | ~2 MB |
 | Smart Turn v3.2 CPU ONNX | 8.7 MB |
 

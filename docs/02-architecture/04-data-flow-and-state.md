@@ -207,7 +207,7 @@ graph LR
     P --> T[Transcript]
 
     L[LLM tokens] --> SG[Segmenter]
-    SG --> K[Kokoro ONNX]
+    SG --> K[Piper ONNX]
     K --> Q[Playback queue<br/>≤100 ms]
     Q --> O[Output device]
 ```

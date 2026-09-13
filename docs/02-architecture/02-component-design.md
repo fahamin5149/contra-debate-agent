@@ -221,15 +221,15 @@ class TtsStage(Protocol):
 
 | | |
 |---|---|
-| **Implementation** | Kokoro-82M via `kokoro-onnx` |
+| **Implementation** | Piper 1.8.0, `en_US-lessac-medium`; Kokoro optional |
 | **Placement** | CPU |
 | **Budget** | ≤ 150 ms to first byte (NFR-P-13) |
 | **RTF** | must be < 0.5 (NFR-P-22) |
 
-**Known caveat.** ONNX Kokoro has higher per-call overhead than PyTorch and is
-relatively slower on very short texts (RTF 0.72 vs 0.49). Since we deliberately
-stream short sentences, `SentenceSegmenter` must avoid dispatching three-word
-fragments — see below.
+**[VERIFIED by BM-03, 2026-09-13]** Piper returned the complete 15-character
+unit in 57.5 ms and met the 40+ character throughput target under concurrent LLM
+load. Kokoro required 420–653 ms for a short unit and is no longer the default;
+see [ADR-0015](adr/0015-piper-as-primary-tts.md).
 
 ---
 
@@ -338,14 +338,14 @@ class SentenceSegmenter:
 |---|---|---|
 | Emit on terminal punctuation | `. ! ?` | Natural prosody boundary |
 | Also emit on clause break if buffer > 80 chars | `, ; :` | Avoids long first-sentence latency |
-| **Minimum unit** | **~15 chars** | Kokoro ONNX is inefficient on tiny fragments |
+| **Minimum unit** | **~15 chars** | Avoid unnatural fragments and excess per-call overhead |
 | Force-emit at | 200 chars | Safety valve |
 
 > **The first unit is special.** Time-to-first-audio depends almost entirely on
 > how quickly unit one is emitted. If the model opens with a long sentence, the
 > user waits. The clause-break rule exists to cap that wait, and the minimum-unit
-> rule exists to stop it firing on "Well," — which would hit Kokoro's
-> short-text penalty for no benefit.
+> rule exists to stop it firing on "Well," and producing an unnatural isolated
+> fragment for no benefit.
 
 ---
 

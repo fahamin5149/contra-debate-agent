@@ -34,7 +34,7 @@ The conventional approach puts STT (and sometimes TTS) on the GPU for speed.
 
 **The GPU has exactly one tenant: the LLM.**
 
-STT (Parakeet), TTS (Kokoro), VAD (Silero), and semantic turn detection all run
+STT (Parakeet), TTS (Piper per ADR-0015), VAD (Silero), and semantic turn detection all run
 on the **CPU**.
 
 ## Rationale
@@ -60,7 +60,7 @@ it is sufficient:
 | Workload | Reported | Confidence |
 |---|---|---|
 | Parakeet TDT on CPU | ~4× faster than Whisper | **[SOURCED]** |
-| Kokoro-82M on CPU | Faster than real-time | **[SOURCED]** |
+| Piper 1.8.0 on CPU | RTF 0.050–0.052 on 40+ character units | **[VERIFIED: BM-03]** |
 
 ### 3. It eliminates contention jitter
 
@@ -139,7 +139,7 @@ Frees 0.25 GiB. Kept as a contingency lever, not spent pre-emptively.
 
 | ID | Measures |
 |---|---|
-| **BM-03** | Parakeet + Kokoro RTF on this CPU **during** LLM generation |
+| **BM-03** | Parakeet + Piper RTF on this CPU **during** LLM generation — PASS |
 | **BM-04** | Actual free VRAM; which GPU drives the display |
 
 Both run in [Phase 0](../../07-planning/01-roadmap.md), before implementation.

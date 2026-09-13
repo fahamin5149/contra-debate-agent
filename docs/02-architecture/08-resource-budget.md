@@ -165,7 +165,7 @@ context or a better quant — not a reason to relocate speech models.
 The argument that makes this cheap rather than a sacrifice: **with `-ngl 99`,
 llama.cpp leaves the CPU nearly idle.** All 32 layers execute on the GPU; the
 CPU only marshals requests. During the LLM's ~5 s generation burst, 16 threads
-sit unused. Putting Parakeet and Kokoro there consumes capacity we have already
+sit unused. Putting Parakeet and Piper there consumes capacity we have already
 paid for and are otherwise wasting.
 
 Full rationale: [ADR-0004](adr/0004-cpu-placement-for-stt-and-tts.md).
@@ -215,13 +215,13 @@ shrink the LLM's share.
 | Windows 11 | 3.5 | **[ASSUMED]** |
 | Python runtime + asyncio orchestrator | 0.4 | |
 | Parakeet TDT ONNX | 1.2 | 0.6B params, CPU-resident |
-| Kokoro-82M ONNX | 0.3 | |
+| Piper voice/runtime | 0.1 | **[ESTIMATED]** from 63.2 MB voice artifact plus runtime |
 | Silero VAD + turn detector | 0.6 | Turn detector is a 0.5B model |
 | Audio buffers | 0.1 | |
 | llama-server host process | 0.5 | Beyond VRAM |
 | Browser UI (optional) | 1.5 | |
-| **Total** | **8.1** |
-| **Of 15.7 available** | **52%** | Within NFR-R-03's 10 GiB cap |
+| **Total** | **7.9** |
+| **Of 15.7 available** | **50%** | Within NFR-R-03's 10 GiB cap |
 
 Comfortable. The model is memory-mapped during load, which can transiently spike
 page-cache usage but does not count as committed memory.
@@ -234,15 +234,15 @@ page-cache usage but does not count as committed memory.
 |---|---|
 | Qwen3.5-9B UD-Q4_K_XL | 5.56 |
 | Parakeet TDT ONNX | ~0.65 |
-| Kokoro-82M ONNX | ~0.31 |
+| Piper `en_US-lessac-medium` | ~0.06 |
 | Silero VAD | ~0.002 |
-| Turn detector | ~0.5 |
+| Smart Turn v3.2 | ~0.009 |
 | Python environment | ~2.0 |
 | llama.cpp binaries + CUDA | ~0.5 |
 | Session data (500 sessions) | ~0.01 |
-| **Total** | **~9.5** |
+| **Total** | **~8.8** |
 
-NFR-R-06 caps models at 8 GiB; models alone total ~7.0 GiB. Within budget.
+NFR-R-06 caps models at 8 GiB; models alone total ~6.3 GiB. Within budget.
 
 ---
 

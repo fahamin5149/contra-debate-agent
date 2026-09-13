@@ -77,8 +77,8 @@ stt:
   num_threads: 4               # P-cores; see §5
 
 tts:
-  engine: "kokoro"             # kokoro | piper
-  model_path: "models/kokoro-v1.0.onnx"
+  engine: "piper"              # piper | kokoro (optional, non-NFR-P-13 mode)
+  model_path: "models/piper/en_US-lessac-medium.onnx"
   voice: "af_heart"
   speed: 1.0
   min_unit_chars: 15           # ADR-0006 short-text penalty

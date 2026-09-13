@@ -97,8 +97,8 @@ Barge-in from both `THINKING` and `SPEAKING`.
 | 200 chars, no punctuation | force-emitted |
 | Stream ends mid-sentence | `flush()` emits the remainder |
 
-The short-fragment case matters because of Kokoro's short-text penalty
-([ADR-0006](../02-architecture/adr/0006-kokoro-for-tts.md)).
+The short-fragment case remains a direct NFR-P-13 regression after Piper
+superseded Kokoro as the default ([ADR-0015](../02-architecture/adr/0015-piper-as-primary-tts.md)).
 
 #### Others
 `PromptBuilder` (variable substitution, stable prefix), `LlmClient`

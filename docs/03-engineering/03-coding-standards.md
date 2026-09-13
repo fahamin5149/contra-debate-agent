@@ -30,6 +30,7 @@ are the ones tools cannot check.
 ```toml
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "onnx_asr".msg       = "Only in speech/. Core depends on interfaces."
+"piper".msg          = "Only in speech/."
 "kokoro_onnx".msg    = "Only in speech/."
 "sounddevice".msg    = "Only in audio/."
 "pipecat".msg        = "Only in pipeline/assembly.py."
@@ -229,9 +230,9 @@ Comment **why**, never what.
 self.sequence += 1
 
 # RIGHT
-# Kokoro ONNX has high per-call overhead and is slower than PyTorch on very
-# short inputs (RTF 0.72 vs 0.49). Below ~15 chars the overhead dominates, so
-# we hold the fragment and merge it into the next unit. See ADR-0006.
+# Isolated discourse fragments such as "Well," sound unnatural and spend a
+# complete synthesis call on no useful argument content. Hold fragments below
+# ~15 chars and merge them into the next unit. See ADR-0015.
 if len(unit) < MIN_UNIT_CHARS:
     self._pending = unit
     return []

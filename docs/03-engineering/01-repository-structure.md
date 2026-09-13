@@ -39,7 +39,8 @@ contra-debate-agent/
 │   │   ├── interfaces.py        # SttStage, TtsStage protocols
 │   │   ├── parakeet_stt.py      # onnx-asr
 │   │   ├── whisper_stt.py       # faster-whisper fallback
-│   │   └── kokoro_tts.py        # kokoro-onnx
+│   │   ├── piper_tts.py         # default Piper engine (ADR-0015)
+│   │   └── kokoro_tts.py        # optional quality mode
 │   │
 │   ├── debate/                  # ← the core. No I/O library imports.
 │   │   ├── session_manager.py   # state machine
@@ -110,7 +111,7 @@ contra-debate-agent/
 
 ### 2.1 `debate/` imports no I/O libraries
 
-The core must not import `onnx_asr`, `kokoro_onnx`, `sounddevice`, `pipecat`, or
+The core must not import `onnx_asr`, `piper`, `kokoro_onnx`, `sounddevice`, `pipecat`, or
 `torch`. It depends only on the protocols in `*/interfaces.py`.
 
 This is what makes NFR-M-01 real rather than aspirational, and it is
@@ -193,7 +194,7 @@ signal to reconsider the split rather than to pick one arbitrarily.
 | Modules | `snake_case` | `session_manager.py` |
 | Classes | `PascalCase` | `ConversationState` |
 | Protocols | `PascalCase`, no `I` prefix | `SttStage` |
-| Implementations | `<Vendor><Role>` | `ParakeetStt`, `KokoroTts` |
+| Implementations | `<Vendor><Role>` | `ParakeetStt`, `PiperTts` |
 | Config keys | `snake_case` | `max_response_tokens` |
 | Env vars | `CONTRA_<SECTION>_<KEY>` | `CONTRA_LLM_PORT` |
 | Prompt files | `v<N>.md` | `debate/v3.md` |

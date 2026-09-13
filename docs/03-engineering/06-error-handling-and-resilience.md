@@ -148,7 +148,7 @@ The system can run reduced rather than stopping.
 | Mode | Trigger | Lost | Retained |
 |---|---|---|---|
 | **No UI** | WebSocket dies | Live transcript | Full voice debate |
-| **Fallback TTS** | Kokoro fails | Voice quality | Speech |
+| **Optional TTS** | User selects Kokoro | Higher latency; improved naturalness **[ASSUMED]** | Speech |
 | **Fallback STT** | Parakeet fails | Accuracy | Transcription |
 | **Heuristic turns** | Smart Turn fails | Natural pausing | Turn-taking |
 | **Push-to-talk** | Turn detection unusable | Hands-free | Everything else |

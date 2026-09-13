@@ -2,7 +2,11 @@
 
 | Status | Date | Confidence | Reversibility |
 |---|---|---|---|
-| Accepted | 2026-08-30 | Medium | Easy |
+| **SUPERSEDED by [ADR-0015](0015-piper-as-primary-tts.md)** | 2026-08-30; superseded 2026-09-13 | — | — |
+
+> BM-03 measured 420–653 ms for a short Kokoro unit on the target laptop,
+> exceeding NFR-P-13's 150 ms limit. This record retains the original decision
+> and reasoning; ADR-0015 carries the measured replacement.
 
 ## Context
 

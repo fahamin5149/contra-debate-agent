@@ -155,16 +155,17 @@ indistinguishable from a crash.
 
 | | |
 |---|---|
-| **Closed** | 2026-09-12 |
-| **Answer** | GIL release is insufficient; thread/native-pool inference missed audio deadlines |
-| **Evidence** | [BM-03](../../benchmarks/results/BM-03-cpu-speech-rtf.md): best configuration missed 170 frame deadlines |
+| **Closed** | 2026-09-13 |
+| **Answer** | Do not rely on thread-only ownership; use bounded spawned workers |
+| **Evidence** | [BM-03](../../benchmarks/results/BM-03-cpu-speech-rtf.md): corrected thread trial missed service windows; selected spawned/Piper configuration passed |
 | **Decision now lives in** | [ADR-0009](../02-architecture/adr/0009-python-as-orchestration-language.md) |
 
 **What it determined.** BM-03 measures the product-relevant outcome rather than
-trying to attribute every scheduler stall to the Python GIL. Regardless of
-whether an individual ONNX call releases it, thread-based model execution did
-not preserve the 20 ms audio schedule under realistic load. Spawned,
-model-owning subprocesses are therefore required and must pass a repeat BM-03.
+trying to attribute every scheduler stall to the Python GIL. The original large
+drop counts came from a drifting Windows timer probe and are invalid. The
+corrected trial still does not give threads a bounded way to terminate obsolete
+native work, while the selected spawned-worker/Piper configuration met every
+BM-03 gate. Spawned model ownership is therefore retained; no GIL claim is made.
 
 ---
 
